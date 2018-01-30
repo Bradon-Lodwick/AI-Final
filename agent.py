@@ -9,6 +9,7 @@ TODO
 * Generate the needed number of targets for the agent
 * Target list makes more sense to be outside of the agent class, as it shouldn't really be able to access the targets
 outside of locating them
+*
 
 """
 
