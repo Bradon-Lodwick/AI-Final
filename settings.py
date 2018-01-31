@@ -3,9 +3,9 @@
 
 Important Notes
 ---------------
-* All measurements of distance will be in metres
+* All measurements of distance will be in centimetres
 * All measurements of time will be in the arbitrary "steps" unit
-* Speed, therefore, is in a measurement of metres/step
+* Speed, therefore, is in a measurement of centimetres/step
 
 TODO
 ----
@@ -21,8 +21,8 @@ __status__ = "Prototype"
 from enum import Enum  # Used to create enumerations
 
 # Playing field settings
-width = 10.0  # The width of the playing field
-length = 10.0  # The length of the playing field
+width = 1000  # The width of the playing field
+length = 1000  # The length of the playing field
 no_agents = 5  # The number of agents to be used in the simulation
 no_targets_per_agent = 5  # The number of targets for each agent to use
 
@@ -37,5 +37,15 @@ class Mode(Enum):
     COMPASSIONATE = 3  # Value to be used for compassionate mode
 
 
+class Direction(Enum):
+    """ Enumeration for the four cardinal directions
+
+    """
+    N = 1 # North
+    E = 2 # East
+    S = 3 # South
+    W = 4 # West
+
+
 # Agent settings
-speed = 0.01  # The speed at which the agent moves, in metres/step
+speed = 1  # The speed at which the agent moves, in metres/step

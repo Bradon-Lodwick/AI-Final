@@ -17,9 +17,10 @@ __status__ = "Prototype"
 
 import settings  # Stores global settings, such as speed of agents, number of targets, etc.
 import random  # Used to place the agent on a random point on the playing field
+from game_object import GameObject
 
 
-class Target:
+class Target(GameObject):
     """ A target that the agent is tasked with finding.
 
     Attributes
@@ -32,8 +33,9 @@ class Target:
         Whether the target has been found by it's agent.
 
     """
-
-    def __init__(self, agent, number):
+    # TODO fix duplicates between GameObject and Target, make more compatible
+    def __init__(self, agent, number, *args, **kwargs):
+        GameObject.__init__(self, *args, **kwargs)
         """ Constructor for the Target class.
 
         Parameters
@@ -51,8 +53,6 @@ class Target:
 
         # Determines the location of the bot on the playing field using rng
         # TODO make the target unable to intersect with other targets on initialization
-        self.x = random.uniform(0, settings.length)
-        self.y = random.uniform(0, settings.width)
 
         # Initialize the found variable to False
         self.found = False

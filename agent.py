@@ -20,10 +20,11 @@ __status__ = "Prototype"
 
 import settings  # Stores global settings, such as speed of agents, number of targets, etc.
 import random  # Used to place the agent on a random point on the playing field
+from game_object import GameObject
 from target import Target  # Used to generate the agent's target
 
 
-class Agent:
+class Agent(GameObject):
     """ The agent used in the simulation.
 
     Attributes
@@ -51,8 +52,9 @@ class Agent:
         Raised in the case the given mode is not able to be handled by the agent.
 
     """
-
-    def __init__(self, mode):
+    # TODO implement Agent in a more GameObjectifying way
+    def __init__(self, mode, *args, **kwargs):
+        GameObject.__init__(self, *args, **kwargs)
         """ Constructor for the Agent class.
 
         Parameters
@@ -83,13 +85,11 @@ class Agent:
 
         # Determines the location of the bot on the playing field using rng
         # TODO make the agent unable to intersect with other agents on initialization
-        self.x = random.uniform(0, settings.length)
-        self.y = random.uniform(0, settings.width)
 
         # The list of targets belonging to the agent
-        targets = list()
+#        targets = list()
         # Creates the targets for the agent
-        for i in range(0, self.no_targets_total):
+#        for i in range(0, self.no_targets_total):
             # Create a target with the id number of i
-            targets.append(Target(self, i))
+#            targets.append(Target(self, i))
         # TODO send the targets somewhere else, doesn't make sense to have them in the thing looking for it. '''
