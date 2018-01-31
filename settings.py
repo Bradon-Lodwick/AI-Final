@@ -49,3 +49,4 @@ class Direction(Enum):
 
 # Agent settings
 speed = 1  # The speed at which the agent moves, in metres/step
+radius = 10  # The radius that the agent can see in
