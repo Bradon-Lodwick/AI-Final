@@ -57,23 +57,6 @@ class Target(GameObject):
         # Initialize the found variable to False
         self.found = False
 
-    def is_found(self, agent):
-        """ Called when an agent finds the target.
-
-        Parameters
-        ----------
-        agent : Agent
-            The agent that found the target
-
-        """
-
-        # Checks if the agent that found it is the target's agent
-        if self.agent == agent:
-            # Signals target is found
-            self.found = True
-
-        # If the agent is not the target's agent and the agent that found the target is able to private message,
-        # send message
-        elif agent.private_channel:
-            # TODO send a message to the target's agent
-            pass
+    def is_found(self):
+        print("Agent {} has found {}!".format(self.agent.name, self.name))
+        self.field.remove_object(self)

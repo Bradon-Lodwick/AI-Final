@@ -6,9 +6,6 @@ size, etc.
 TODO
 ----
 * Make agent's initial location unable to intersect with another agent's on class initialization
-* Generate the needed number of targets for the agent
-* Target list makes more sense to be outside of the agent class, as it shouldn't really be able to access the targets
-outside of locating them
 *
 
 """
@@ -19,9 +16,9 @@ __version__ = "0.1"
 __status__ = "Prototype"
 
 import settings  # Stores global settings, such as speed of agents, number of targets, etc.
-import random  # Used to place the agent on a random point on the playing field
 from game_object import GameObject
 from target import Target  # Used to generate the agent's target
+from game_field import GameField  # Used to simulate the sensors that the bot uses to interact with the environment
 
 
 class Agent(GameObject):
@@ -33,8 +30,10 @@ class Agent(GameObject):
         The distance the agent can go per step.
     no_targets_total : int
         The number of targets the agent needs to find.
-    no_targets_found : int
-        The number of targets the agent has found.
+    targets_found : list
+        The list of targets the agent has found that belong to it.
+    targets_seen : list
+        The list of targets the agent has found that belong to other agents.
     mode : int
         The mode the agent should be started in. Uses the Mode Enum class from settings.py.
     public_channel : bool
@@ -52,7 +51,6 @@ class Agent(GameObject):
         Raised in the case the given mode is not able to be handled by the agent.
 
     """
-    # TODO implement Agent in a more GameObjectifying way
     def __init__(self, mode, *args, **kwargs):
         GameObject.__init__(self, *args, **kwargs)
         """ Constructor for the Agent class.
@@ -67,7 +65,8 @@ class Agent(GameObject):
         # Declares the required variables for the agent to interact with the environment
         self.speed = settings.speed  # The speed at which the agent can move in the environment
         self.no_targets_total = settings.no_targets_per_agent  # The number of targets the agent is required to find
-        self.no_targets_found = 0  # The number of targets the agent has found
+        self.targets_found = list()  # The list of targets the agent has found that belong to it
+        self.targets_seen = list()  # The list of targets the agent has found that don't belong to it
 
         # Determines mode-related variables
         self.mode = mode
@@ -86,10 +85,48 @@ class Agent(GameObject):
         # Determines the location of the bot on the playing field using rng
         # TODO make the agent unable to intersect with other agents on initialization
 
-        # The list of targets belonging to the agent
-#        targets = list()
-        # Creates the targets for the agent
-#        for i in range(0, self.no_targets_total):
-            # Create a target with the id number of i
-#            targets.append(Target(self, i))
-        # TODO send the targets somewhere else, doesn't make sense to have them in the thing looking for it. '''
+    def after_movement(self, game_field):
+        """ Ran after the agent has moved. Updates the list of objects in it's radar, determines valid movement
+        directions based on nearby agents/game field bounds, and deals with targets in it's radius.
+
+        Parameters
+        ----------
+        game_field : GameField
+            The game field that the agent is on.
+
+        """
+
+        # Scan the area to see what the agent can see
+        vis_obj = game_field.scan_radius(self, settings.radius)
+
+        # Loops through all of the objects to see if there are any agents
+        for obj in vis_obj:
+            # If the object is an agent
+            if isinstance(obj, Agent):
+                # Checks to see which direction the bot should be allowed to move in
+                if self.get_location()[0] < obj.get_location()[0]:  # If self is further to the West
+                    if self.get_location()[1] < obj.get_location()[1]:  # If self is further to the South
+                        # TODO give self priority
+                        pass
+                    else:
+                        # TODO give obj priority
+                        pass
+                else:  # If self is further to the East
+                    if self.get_location()[1] < obj.get_location()[1]:  # If self is further to the South
+                        # TODO give obj priority
+                        pass
+                    else:
+                        # TODO give self priority
+                        pass
+
+            # If the object is a target
+            elif isinstance(obj, Target):
+                # Collects target if it is it's own target
+                if obj.agent == self:
+                    # Tells the target it is found so it can be removed from the game field
+                    obj.is_found()
+                    # Adds the target to the agent's target_found list
+                    self.targets_found.append(obj)
+                else:
+                    # Store target in memory
+                    self.targets_seen.append(obj)
