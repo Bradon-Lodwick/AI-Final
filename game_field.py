@@ -35,10 +35,17 @@ class GameField:
     game_objects = []   # list of all objects on the field
 
     # initialized based on settings file
-    def __init__(self):
+    def __init__(self, game_objects):
+        """ Initializes the game field
+
+        Parameters
+        ----------
+        game_objects : list
+            The initial list of game objects.
+        """
         self.length = settings.length
         self.width = settings.width
-        self.game_objects = list()
+        self.game_objects = game_objects
 
     # adds a new object to the field
     def add_objects(self, new_object):

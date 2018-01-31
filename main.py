@@ -3,28 +3,54 @@ from game_field import GameField
 from agent import Agent
 from target import Target
 
+
+def setup_game():
+    """ Sets up the game by creating the game field, agents, and targets.
+
+    Returns
+    -------
+    GameField
+        Returns the game field that will be used for the game the is set up
+
+    """
+    # Gets desired mode from user
+    mode_input = None
+    while int(mode_input) < 1 or int(mode_input) > 3:
+        input("Please input desired mode. 1 = Competition, 2 = Collaboration, 3 = Compassionate\n>")
+
+    if mode_input == 1:
+        mode_input == settings.Mode.COMPETITION
+    elif mode_input == 2:
+        mode_input == settings.Mode.COLLABORATION
+    elif mode_input == 3:
+        mode_input == settings.Mode.COMPASSIONATE
+
+    # Temporary lists for the agents and targets, to be added to the game_field when initialized
+    agents = list()
+    targets = list()
+    # Begins creating the agents
+    for i in range(settings.no_agents):
+        # TODO get origin for agent by rng
+        origin = (0, 0)
+        agent = Agent(mode_input, origin, name='Agent {}'.format(i))
+    # Begins creating the targets
+    for agent in agents:
+        for i in range(settings.no_targets_per_agent):
+            # TODO get origin for agent by rng
+            origin = (0, 0)
+            target = Target(agent, i, origin, name='Target {}-{}'.format(agent.name, i))
+
+    # Creates the game objects list to pass to the game field
+    game_objects = agents
+    game_objects.extend(targets)
+
+    # Creates the game field
+    field = GameField(game_objects)
+
+    # Returns the game field
+    return field
+
+
 if __name__ == '__main__':
-
-    field = GameField()
-
-    agent1 = Agent(settings.Mode.COLLABORATION, [0,0], "E-Bert")
-    agent2 = Agent(settings.Mode.COLLABORATION, [0,1], "A-Bert")
-    target1 = Target("steve", 4, [1,1], "Other-Bert")
-    target2 = Target("steve", 4, [10,1], "Egg-Bert")
-    target3 = Target("steve", 4, [25,1], "Steve-Bert")
-
-    field.add_objects(agent1)
-    field.add_objects(agent2)
-    field.add_objects(target1)
-    field.add_objects(target2)
-    field.add_objects(target3)
-
-
-
-    for i in range(5):
-        print("\nMy location: {}".format(agent1.get_location()))
-        for go in field.scan_radius(agent1, 10):
-            print("{0:<3}\t{1:<10}\t{2}".format(go[0], go[1], go[2]))
-        agent1.move(settings.Direction.E, 4)
-
-
+    # Sets up the game.
+    game_field = setup_game()
