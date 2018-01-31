@@ -1,21 +1,48 @@
+""" The file that holds the gameField and it's functions
+
+TODO
+----
+*replace get_location with proper coordinate function
+
+"""
+__author__ = "Bradon Lodwick, Reid Butson, Thomas Reis"
+__version__ = "0.1"
+__status__ = "Prototype"
+
 import numpy as np
 import settings
 
+
 class GameField:
+
+    # length and width of field
     length = None
     width = None
 
-    agent_list = []
-    target_list = []
 
+    game_objects = []   # list of all objects on the field
+
+    # initialized based on settings file
     def __init__(self):
         self.length = settings.length
         self.width = settings.width
 
-    def add_agent(self, agent):
-        self.agent_list.appened(agent)
+    # adds a new object to the field
+    def add_objects(self, new_object):
+        self.game_objects.append(new_object)
 
-    def add_target(self, target):
-        self.target_list.append(target)
+    # function that will return all other objects within radius of an agent
+    # TODO get_location should be replaced by the coordinate function of agents/targets
+    def scan_radius(self, agent, radius):
+        origin = agent.get_location()
+        surroundings = []
 
-    
+        # loops through all objects on the field
+        for x in self.game_objects:
+            loc = x.get_location()
+            distance = abs((loc[0]-origin[0])**2 + (loc[1]-origin[1])**2)**0.5 # calculates distance between objects
+
+            if distance < radius: # if the distance is less than the search radius the object is added to surroundings
+                surroundings.append(x)  # a list of all nearby objects is returned to the agent
+
+        return surroundings
