@@ -19,10 +19,11 @@ __status__ = "Prototype"
 
 import settings  # Stores global settings, such as speed of agents, number of targets, etc.
 import random  # Used to place the agent on a random point on the playing field
+from game_object import GameObject
 from target import Target  # Used to generate the agent's target
 
 
-class Agent:
+class Agent(GameObject):
     """ The agent used in the simulation.
 
     Attributes
@@ -50,8 +51,9 @@ class Agent:
         Raised in the case the given mode is not able to be handled by the agent.
 
     """
-
-    def __init__(self, mode):
+    # TODO implement Agent in a more GameObjectifying way
+    def __init__(self, mode, *args, **kwargs):
+        GameObject.__init__(self, *args, **kwargs)
         """ Constructor for the Agent class.
 
         Parameters

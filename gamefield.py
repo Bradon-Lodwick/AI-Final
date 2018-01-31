@@ -32,7 +32,7 @@ class GameField:
         self.game_objects.append(new_object)
 
     # function that will return all other objects within radius of an agent
-    # TODO get_location should be replaced by the coordinate function of agents/targets
+    # TODO get_location should be consistent with game_objects location function
     def scan_radius(self, agent, radius):
         origin = agent.get_location()
         surroundings = []
