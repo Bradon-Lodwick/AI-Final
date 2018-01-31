@@ -81,14 +81,3 @@ class Agent(GameObject):
             self.private_channel = True  # Allows private channel communication
         else:  # If a non-existent mode is given, throws an error
             raise ValueError('The given mode was not valid.', 'given mode = {}'.format(mode))
-
-        # Determines the location of the bot on the playing field using rng
-        # TODO make the agent unable to intersect with other agents on initialization
-
-        # The list of targets belonging to the agent
-#        targets = list()
-        # Creates the targets for the agent
-#        for i in range(0, self.no_targets_total):
-            # Create a target with the id number of i
-#            targets.append(Target(self, i))
-        # TODO send the targets somewhere else, doesn't make sense to have them in the thing looking for it. '''

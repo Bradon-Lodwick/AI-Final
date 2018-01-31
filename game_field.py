@@ -26,8 +26,12 @@ class GameField:
         self.width = settings.width
 
     # adds a new object to the field
-    def add_objects(self, new_object):
+    def add_object(self, new_object):
         self.game_objects.append(new_object)
+        new_object.set_field(self)
+
+    def remove_object(self, object):
+        self.game_objects.remove(object)
 
     # function that will return all other objects within radius of an agent
     # TODO get_location should be consistent with game_objects location function
@@ -42,6 +46,6 @@ class GameField:
                 distance = abs((loc[0]-origin[0])**2 + (loc[1]-origin[1])**2)**0.5 # calculates distance between objects
 
                 if distance < radius: # if the distance is less than the search radius the object is added to surroundings
-                    surroundings.append((x.__class__.__name__, x.get_name(), x.get_location()))  # a list of all nearby objects is returned to the agent
+                    surroundings.append(x)  # a list of all nearby objects is returned to the agent
 
         return surroundings

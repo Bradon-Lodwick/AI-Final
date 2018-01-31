@@ -17,6 +17,7 @@ class GameObject:
 
     location = []
     name = str
+    field = None
 
     def __init__(self, origin, name=None):
         # TODO Choose name format
@@ -34,14 +35,20 @@ class GameObject:
         return self.location
 
     def move(self, direction, dist=settings.speed):
-        if direction == settings.Direction.N:
-            self.location[1] += dist
-        if direction == settings.Direction.E:
-            self.location[0] += dist
-        if direction == settings.Direction.S:
-            self.location[1] -= dist
-        if direction == settings.Direction.W:
-            self.location[0] -= dist
+        if not self.field:
+            print("You are not in a field")
+        else:
+            if direction == settings.Direction.N:
+                self.location[1] += dist
+            if direction == settings.Direction.E:
+                self.location[0] += dist
+            if direction == settings.Direction.S:
+                self.location[1] -= dist
+            if direction == settings.Direction.W:
+                self.location[0] -= dist
 
     def get_name(self):
         return self.name
+
+    def set_field(self, field):
+        self.field = field
