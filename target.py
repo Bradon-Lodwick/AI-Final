@@ -52,8 +52,6 @@ class Target(GameObject):
 
         # Determines the location of the bot on the playing field using rng
         # TODO make the target unable to intersect with other targets on initialization
-        self.x = random.uniform(0, settings.length)
-        self.y = random.uniform(0, settings.width)
 
         # Initialize the found variable to False
         self.found = False

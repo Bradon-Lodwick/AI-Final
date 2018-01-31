@@ -37,10 +37,11 @@ class GameField:
 
         # loops through all objects on the field
         for x in self.game_objects:
-            loc = x.get_location()
-            distance = abs((loc[0]-origin[0])**2 + (loc[1]-origin[1])**2)**0.5 # calculates distance between objects
+            if x != agent:
+                loc = x.get_location()
+                distance = abs((loc[0]-origin[0])**2 + (loc[1]-origin[1])**2)**0.5 # calculates distance between objects
 
-            if distance < radius: # if the distance is less than the search radius the object is added to surroundings
-                surroundings.append(x.__class__.__name__, x.get_location)  # a list of all nearby objects is returned to the agent
+                if distance < radius: # if the distance is less than the search radius the object is added to surroundings
+                    surroundings.append((x.__class__.__name__, x.get_name(), x.get_location()))  # a list of all nearby objects is returned to the agent
 
         return surroundings
