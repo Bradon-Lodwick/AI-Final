@@ -18,8 +18,6 @@ class GameField:
     # length and width of field
     length = None
     width = None
-
-
     game_objects = []   # list of all objects on the field
 
     # initialized based on settings file
@@ -43,6 +41,6 @@ class GameField:
             distance = abs((loc[0]-origin[0])**2 + (loc[1]-origin[1])**2)**0.5 # calculates distance between objects
 
             if distance < radius: # if the distance is less than the search radius the object is added to surroundings
-                surroundings.append(x)  # a list of all nearby objects is returned to the agent
+                surroundings.append(x.__class__.__name__, x.get_location)  # a list of all nearby objects is returned to the agent
 
         return surroundings

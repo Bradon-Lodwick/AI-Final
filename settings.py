@@ -37,5 +37,15 @@ class Mode(Enum):
     COMPASSIONATE = 3  # Value to be used for compassionate mode
 
 
+class Direction(Enum):
+    """ Enumeration for the four cardinal directions
+
+    """
+    N = 1 # North
+    E = 2 # East
+    S = 3 # South
+    W = 4 # West
+
+
 # Agent settings
 speed = 1  # The speed at which the agent moves, in metres/step
