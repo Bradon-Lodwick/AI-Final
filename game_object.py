@@ -2,8 +2,7 @@
 Created GameObject class for Targets and Agents to inherit from
 this is for easier interaction with the playing field and should keep them more consistent
 """
-
-from settings import Direction
+import settings
 
 class GameObject:
     """
@@ -16,7 +15,7 @@ class GameObject:
         Name of the GameObject to be used in identification
     """
 
-    location = tuple
+    location = []
     name = str
 
     def __init__(self, origin, name=None):
@@ -34,15 +33,15 @@ class GameObject:
     def get_location(self):
         return self.location
 
-    def move(self, direction):
-        if direction == Direction.N:
-            self.location[1] += 1
-        if direction == Direction.E:
-            self.location[0] += 1
-        if direction == Direction.S:
-            self.location[1] -= 1
-        if direction == Direction.W:
-            self.location[0] -= 1
+    def move(self, direction, dist=settings.speed):
+        if direction == settings.Direction.N:
+            self.location[1] += dist
+        if direction == settings.Direction.E:
+            self.location[0] += dist
+        if direction == settings.Direction.S:
+            self.location[1] -= dist
+        if direction == settings.Direction.W:
+            self.location[0] -= dist
 
     def get_name(self):
         return self.name
