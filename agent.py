@@ -19,6 +19,7 @@ import settings  # Stores global settings, such as speed of agents, number of ta
 from game_object import GameObject
 from target import Target  # Used to generate the agent's target
 from game_field import GameField  # Used to simulate the sensors that the bot uses to interact with the environment
+import random  # Used to test movement
 
 
 class Agent(GameObject):
@@ -87,7 +88,7 @@ class Agent(GameObject):
         # print("My field size is: {}x{}".format(self.field.width, self.field.length))
         for go in self.field.scan_radius(self, 10):
             # print("{0:<3}\t{1:<10}\t{2}".format(go.__class__.__name__, go.get_name(), go.get_location()))
-            if go.__class__.__name__ == "Target" and go.agent == self:
+            if isinstance(go, Target) and go.agent == self:
                 go.is_found()
         
         possible_directions = [settings.Direction.N, settings.Direction.E, settings.Direction.S, settings.Direction.W]
@@ -104,6 +105,7 @@ class Agent(GameObject):
         if self.location[1] + dist > self.field.length:
             possible_directions.remove(settings.Direction.N)
 
+        # TODO make movement non-random
         self.move(random.choice(possible_directions), dist)
 
     def after_movement(self, game_field):

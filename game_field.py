@@ -42,15 +42,18 @@ class GameField:
         game_objects : list
             The initial list of game objects.
         length : int
-            The length of the gamefield.
-        width :int
-            The width of the gamefield.
+            The length of the game field.
+        width : int
+            The width of the game field.
            
         """
         self.length = length
         self.width = width
         self.game_objects = game_objects
-        # TODO loop through game objects and set the object's field to this game field
+
+        # Loops through the game objects and assigns their field value to the current field
+        for obj in game_objects:
+            obj.set_field(self)
 
     # adds a new object to the field
     def add_object(self, new_object):
@@ -76,6 +79,6 @@ class GameField:
                 # If the distance is less than the search radius the object is added to surroundings
                 if distance < radius:
                     # A list of all nearby objects is returned to the agent
-                    surroundings.append((x.__class__.__name__, x.get_name(), x.get_location()))
+                    surroundings.append(x)
 
         return surroundings
