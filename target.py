@@ -29,10 +29,11 @@ class Target(GameObject):
         The agent that the target belongs to.
     number : int
         The target id number. For example, if an agent needs to find 5 targets, this value will be between 1-5.
-    found : bool
-        Whether the target has been found by it's agent.
 
     """
+    # Initialize the found variable to False
+    found = False
+
     # TODO fix duplicates between GameObject and Target, make more compatible
     def __init__(self, agent, number, *args, **kwargs):
         GameObject.__init__(self, *args, **kwargs)
@@ -50,12 +51,6 @@ class Target(GameObject):
         # Set the required parameters for the class
         self.agent = agent  # The agent the target belongs to
         self.number = number  # The id number of the target
-
-        # Determines the location of the bot on the playing field using rng
-        # TODO make the target unable to intersect with other targets on initialization
-
-        # Initialize the found variable to False
-        self.found = False
 
     def is_found(self):
         print("Agent {} has found {}!".format(self.agent.name, self.name))

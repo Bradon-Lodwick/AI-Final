@@ -34,22 +34,31 @@ class GameField:
     width = None
     game_objects = []   # list of all objects on the field
 
-    # initialized based on settings file
-    def __init__(self, game_objects):
+    def __init__(self, game_objects, length=settings.length, width=settings.width):
         """ Initializes the game field
 
         Parameters
         ----------
         game_objects : list
             The initial list of game objects.
+        length : int
+            The length of the gamefield.
+        width :int
+            The width of the gamefield.
+           
         """
-        self.length = settings.length
-        self.width = settings.width
+        self.length = length
+        self.width = width
         self.game_objects = game_objects
+        # TODO loop through game objects and set the object's field to this game field
 
     # adds a new object to the field
-    def add_objects(self, new_object):
+    def add_object(self, new_object):
         self.game_objects.append(new_object)
+        new_object.set_field(self)
+
+    def remove_object(self, object):
+        self.game_objects.remove(object)
 
     # function that will return all other objects within radius of an agent
     # TODO get_location should be consistent with game_objects location function

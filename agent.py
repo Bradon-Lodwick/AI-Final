@@ -82,8 +82,29 @@ class Agent(GameObject):
         else:  # If a non-existent mode is given, throws an error
             raise ValueError('The given mode was not valid.', 'given mode = {}'.format(mode))
 
-        # Determines the location of the bot on the playing field using rng
-        # TODO make the agent unable to intersect with other agents on initialization
+    def move_agent_random(self, dist):
+        # print("\n{} location: {}".format(self.name, self.get_location()))
+        # print("My field size is: {}x{}".format(self.field.width, self.field.length))
+        for go in self.field.scan_radius(self, 10):
+            # print("{0:<3}\t{1:<10}\t{2}".format(go.__class__.__name__, go.get_name(), go.get_location()))
+            if go.__class__.__name__ == "Target" and go.agent == self:
+                go.is_found()
+        
+        possible_directions = [settings.Direction.N, settings.Direction.E, settings.Direction.S, settings.Direction.W]
+
+        if self.location[0] - dist < 0:
+            possible_directions.remove(settings.Direction.W)
+
+        if self.location[0] + dist > self.field.width:
+            possible_directions.remove(settings.Direction.E)
+
+        if self.location[1] - dist < 0:
+            possible_directions.remove(settings.Direction.S)
+
+        if self.location[1] + dist > self.field.length:
+            possible_directions.remove(settings.Direction.N)
+
+        self.move(random.choice(possible_directions), dist)
 
     def after_movement(self, game_field):
         """ Ran after the agent has moved. Updates the list of objects in it's radar, determines valid movement

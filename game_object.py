@@ -18,6 +18,7 @@ class GameObject:
 
     location = []
     name = str
+    field = None
 
     def __init__(self, origin, name=None):
         # TODO Choose name format
@@ -74,3 +75,6 @@ class GameObject:
     def get_name(self):
         """ Gets the name of the object."""
         return self.name
+    
+    def set_field(self, field):
+        self.field = field
