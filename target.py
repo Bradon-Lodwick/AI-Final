@@ -6,6 +6,7 @@ number of targets, etc.
 TODO
 ----
 * Make target's initial location unable to intersect with another target's on class initialization
+* Setup ability to send a target to the target's agent when the target is found by another agent
 
 """
 
@@ -28,8 +29,6 @@ class Target(GameObject):
         The agent that the target belongs to.
     number : int
         The target id number. For example, if an agent needs to find 5 targets, this value will be between 1-5.
-    found : bool
-        Whether the target has been found by it's agent.
 
     """
     # Initialize the found variable to False
@@ -54,6 +53,5 @@ class Target(GameObject):
         self.number = number  # The id number of the target
 
     def is_found(self):
-        self.found = True
         print("Agent {} has found {}!".format(self.agent.name, self.name))
         self.field.remove_object(self)

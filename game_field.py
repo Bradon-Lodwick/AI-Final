@@ -2,9 +2,10 @@
 
 TODO
 ----
-*replace get_location with proper coordinate function
+* replace get_location with proper coordinate function
 
 """
+
 __author__ = "Bradon Lodwick, Reid Butson, Thomas Reis"
 __version__ = "0.1"
 __status__ = "Prototype"
@@ -14,16 +15,42 @@ import settings
 
 
 class GameField:
+    """ The field that the game will be played on. Simulates the sensors that the agents would use, by doing things
+    like sensing the objects around it.
+
+    Attributes
+    ----------
+    length : int
+        The length of the game field.
+    width : int
+        The width of the game field.
+    game_objects : list
+        The list of game objects on the game field.
+
+    """
 
     # length and width of field
     length = None
     width = None
     game_objects = []   # list of all objects on the field
 
-    # initialized based on settings file
-    def __init__(self, length=settings.length, width=settings.width):
+    def __init__(self, game_objects, length=settings.length, width=settings.width):
+        """ Initializes the game field
+
+        Parameters
+        ----------
+        game_objects : list
+            The initial list of game objects.
+        length : int
+            The length of the gamefield.
+        width :int
+            The width of the gamefield.
+           
+        """
         self.length = length
         self.width = width
+        self.game_objects = game_objects
+        # TODO loop through game objects and set the object's field to this game field
 
     # adds a new object to the field
     def add_object(self, new_object):
@@ -43,9 +70,12 @@ class GameField:
         for x in self.game_objects:
             if x != agent:
                 loc = x.get_location()
-                distance = abs((loc[0]-origin[0])**2 + (loc[1]-origin[1])**2)**0.5 # calculates distance between objects
+                # Calculates distance between objects
+                distance = abs((loc[0]-origin[0])**2 + (loc[1]-origin[1])**2)**0.5
 
-                if distance < radius: # if the distance is less than the search radius the object is added to surroundings
-                    surroundings.append(x)  # a list of all nearby objects is returned to the agent
+                # If the distance is less than the search radius the object is added to surroundings
+                if distance < radius:
+                    # A list of all nearby objects is returned to the agent
+                    surroundings.append((x.__class__.__name__, x.get_name(), x.get_location()))
 
         return surroundings
