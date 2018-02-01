@@ -57,18 +57,29 @@ def setup_game():
     # Temporary lists for the agents and targets, to be added to the game_field when initialized
     agents = list()
     targets = list()
+    # Generates 2 lists to use for the game object co-ordinates (1 list for both x and y)
+    # NOTE this means that not only can the objects not be on same point, they also can't be in same row/column
+    x_coords = random.sample(range(settings.width), settings.no_agents +
+                             settings.no_agents * settings.no_targets_per_agent)
+    y_coords = random.sample(range(settings.width), settings.no_agents +
+                             settings.no_agents * settings.no_targets_per_agent)
+    cur_coord = 0  # Index value to be increased when assigning object origins, so each has a unique origin
     # Begins creating the agents
     for agent_id in range(settings.no_agents):
-        # TODO get origin for agent by rng
-        origin = (0, 0)
-        agent = Agent(mode_input, origin, name='Agent {}'.format(agent_id))
+        # Set origin to current coordinate
+        origin = (x_coords[cur_coord], y_coords[cur_coord])
+        # Increment coordinate to be used for next loop
+        cur_coord += 1
+        agent = Agent(mode_input, origin, name='A{}'.format(agent_id))
         agents.append(agent)
     # Begins creating the targets
     for agent in agents:
         for target_id in range(settings.no_targets_per_agent):
-            # TODO get origin for agent by rng
-            origin = (0, 0)
-            target = Target(agent, i, origin, name='Target {}-{}'.format(agent.name, i))
+            # Set origin to current coordinate
+            origin = (x_coords[cur_coord], y_coords[cur_coord])
+            # Increment coordinate to be used for next loop
+            cur_coord += 1
+            target = Target(agent, target_id, origin, name='T{}-{}'.format(agent.name, target_id))
             targets.append(target)
 
     # Creates the game objects list to pass to the game field
@@ -83,4 +94,5 @@ def setup_game():
 
 
 if __name__ == '__main__':
-    testing()
+    game_field = setup_game()
+    game_field.graph_objects(game_field.game_objects)

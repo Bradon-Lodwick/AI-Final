@@ -18,7 +18,7 @@ __status__ = "Prototype"
 import settings  # Stores global settings, such as speed of agents, number of targets, etc.
 from game_object import GameObject
 from target import Target  # Used to generate the agent's target
-from game_field import GameField  # Used to simulate the sensors that the bot uses to interact with the environment
+from game_field import *  # Used to simulate the sensors that the bot uses to interact with the environment
 import random  # Used to test movement
 
 
@@ -82,6 +82,39 @@ class Agent(GameObject):
             self.private_channel = True  # Allows private channel communication
         else:  # If a non-existent mode is given, throws an error
             raise ValueError('The given mode was not valid.', 'given mode = {}'.format(mode))
+
+    def move(self, direction, dist=settings.speed):
+        """ Moves the bot in the given direction.
+
+        Parameters
+        ----------
+        direction : settings.Direction
+            The direction to move the agent in.
+        dist : int
+            The distance to move the agent. Defaults to the speed specified in the settings file.
+
+        Raises
+        ------
+        ValueError
+            Raised in the case the given direction was invalid.
+
+        """
+
+        # Move North
+        if direction == settings.Direction.N:
+            self.location[1] += dist
+        # Move East
+        elif direction == settings.Direction.E:
+            self.location[0] += dist
+        # Move South
+        elif direction == settings.Direction.S:
+            self.location[1] -= dist
+        # Move West
+        elif direction == settings.Direction.W:
+            self.location[0] -= dist
+        # Raise an error if the movement was invalid
+        else:
+            raise ValueError("Invalid direction. Use directions defined in the settings.Direction Enum.")
 
     def move_agent_random(self, dist):
         # print("\n{} location: {}".format(self.name, self.get_location()))

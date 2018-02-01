@@ -11,7 +11,10 @@ __version__ = "0.1"
 __status__ = "Prototype"
 
 import numpy as np
+import matplotlib.pyplot as plt
 import settings
+from target import Target
+from agent import Agent
 
 
 class GameField:
@@ -82,3 +85,53 @@ class GameField:
                     surroundings.append(x)
 
         return surroundings
+
+    def graph_objects(self, objects):
+        """ Outputs a graph showing the location of the given list of game objects.
+
+        Parameters
+        ----------
+        objects : list
+            A list of game objects to have placed on the graph. By default, will output all game objects.
+
+        """
+
+        '''
+        # Create a list out of all the object's locations
+        target_locations = list()
+        agent_locations = list()
+        for obj in objects:
+            location = obj.get_location()
+            if isinstance(obj, Target):
+                target_locations.append(location)
+            elif isinstance(obj, Agent):
+                agent_locations.append(location)
+            else:
+                raise ValueError("Must only give targets or agents as game objects.")
+
+        # TODO
+        x, y = zip(*locations)
+        plt.scatter(x, y)
+        '''
+
+        plt.axes()
+        colour = ("red", "orange", "yellow", "green", "blue")
+
+        for obj in objects:
+            if isinstance(obj, Target):
+                col = colour[int(obj.name[2])]
+            elif isinstance(obj, Agent):
+                col = colour[int(obj.name[1])]
+
+            plt.plot(obj.get_location()[0], obj.get_location()[1], 'ro', color=col)
+            plt.annotate(obj.name, xy=(obj.get_location()[0], obj.get_location()[1]))
+
+        # Sets the titles for the axis and plot itself
+        plt.title("game field objects")
+        plt.xlabel("width")
+        plt.ylabel("length")
+        # Sets the bounds of the plot
+        plt.axis([0, self.width, 0, self.length])
+
+        # Shows the plot
+        plt.show()
