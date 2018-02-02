@@ -1,8 +1,16 @@
 import random
 import numpy as np
-from collections import Counter
+from PIL import Image
+import imageio
+import glob
 
-from PIL import Image, ImageSequence
+
+def save_gif(images):
+    sequence = []
+    for ima in images:
+        sequence.append(imageio.imread(ima))
+
+    imageio.mimsave("gif/Weight_Map2.gif", sequence)
 
 
 class Pencil:
@@ -18,14 +26,14 @@ class Pencil:
         self.canvas = canvas
         self.canvas_dim = np.shape(canvas)[:2]
 
-    def move(self, direc, dist):
-        if direc == "N" and self.location[0] - dist >= 0:
+    def move(self, direction, dist):
+        if direction == "N" and self.location[0] - dist >= 0:
             self.location[0] -= dist
-        elif direc == "E" and self.location[1] + dist < self.canvas_dim[0]:
+        elif direction == "E" and self.location[1] + dist < self.canvas_dim[0]:
             self.location[1] += dist
-        elif direc == "S" and self.location[0] + dist < self.canvas_dim[1]:
+        elif direction == "S" and self.location[0] + dist < self.canvas_dim[1]:
             self.location[0] += dist
-        elif direc == "W"and self.location[1] - dist >= 0:
+        elif direction == "W" and self.location[1] - dist >= 0:
             self.location[1] -= dist
         else:
             return 1
@@ -46,53 +54,75 @@ class Pencil:
         if self.location[0] - 1 >= 0:
             neighbor_north = ar[self.location[0] - 1, self.location[1]]
         else:
-            neighbor_north = 1
+            neighbor_north = 255
 
         if self.location[1] + 1 < self.canvas_dim[0]:
             neighbor_east = ar[self.location[0], self.location[1] + 1]
         else:
-            neighbor_east = 1
-            
+            neighbor_east = 255
+
         if self.location[0] + 1 < self.canvas_dim[1]:
             neighbor_south = ar[self.location[0] + 1, self.location[1]]
         else:
-            neighbor_south = 1
-            
+            neighbor_south = 255
+
         if self.location[1] - 1 >= 0:
             neighbor_west = ar[self.location[0], self.location[1] - 1]
         else:
-            neighbor_west = 1
+            neighbor_west = 255
 
-        total = neighbor_north + neighbor_east + neighbor_south + neighbor_west
+        total = int(neighbor_north) + int(neighbor_east) + int(neighbor_south) + int(neighbor_west)
         if total == 0:
-            return 0.25, 0.25, 0.25, 0.25
+            return [0.25, 0.25, 0.25, 0.25]
 
+        neighbor_north = neighbor_north / total
 
-        if neighbor_north/total > 1.0 or neighbor_east/total > 1.0 or neighbor_south/total > 1.0 or neighbor_west/total > 1.0:
-            print("what")
+        neighbor_east = neighbor_east / total
 
-        if neighbor_north/total + neighbor_east/total + neighbor_south/total + neighbor_west/total == 1:
-            print("Good")
-        else:
-            print("Bad")
+        neighbor_south = neighbor_south / total
 
-        return neighbor_north/total, neighbor_east/total, neighbor_south/total, neighbor_west/total
+        neighbor_west = neighbor_west / total
 
+        # fix is a check to make sure the probabilities are equal to 1
+        fix = neighbor_north + neighbor_east + neighbor_south + neighbor_west
+
+        if neighbor_north > 1.0 or neighbor_east > 1.0 or neighbor_south > 1.0 \
+                or neighbor_west > 1.0:
+
+            raise ValueError("Probability cannot be higher than 1 N:{} E:{} S:{} W:{}".format
+                             (neighbor_north, neighbor_east, neighbor_south, neighbor_west))
+
+        elif fix != 1:
+            fix = 1 - fix
+            return [neighbor_north + fix, neighbor_east, neighbor_south, neighbor_west]
+
+        return [neighbor_north, neighbor_east, neighbor_south, neighbor_west]
 
 
 if __name__ == '__main__':
 
-    im = Image.new("L", (100, 100), 0)
+    im = Image.new("L", (100, 100), 255)
     ar = np.array(im)
-
     pen = Pencil([50, 50], ar)
-    c = 1
-    for i in range(50000):
-        pen.move_random(1)
-        ar[pen.get_loc()] = ar[pen.get_loc()]+10
-        pen.neighbor_weights()
-        c -= 0.01
 
-    om = Image.fromarray(ar)
+    for i in range(20000):
+        ar[pen.get_loc()] = ar[pen.get_loc()] - 100
+        if ar[pen.get_loc()] < 0:
+            ar[pen.get_loc()] = 0
+        choice = np.random.choice(["N", "E", "S", "W"], p=pen.neighbor_weights())  # 0.25, 0.25, 0.25, 0.25])
+        pen.move(choice, 1)
 
-    om.save("Blank.png")
+        ar[:, :] = 255 - ar[:, :]
+        if i % 100 == 0:
+            om = Image.fromarray(ar)
+            om.save("frames5/Blank{}.png".format(i))
+        ar[:, :] = 255 - ar[:, :]
+
+    """
+    frames = []
+
+    for file in glob.glob("frames4/*.png"):
+        frames.append(file)
+
+    save_gif(frames)
+    """
