@@ -1,4 +1,5 @@
 cycler==0.10.0
+imageio==2.2.0
 matplotlib==2.1.2
 numpy==1.14.0
 Pillow==5.0.0
