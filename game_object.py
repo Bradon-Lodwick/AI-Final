@@ -10,7 +10,7 @@ class GameObject:
     Attributes
     ----------
 
-    location : tuple
+    location : list
         current coordinates on the playing field
     name : str
         Name of the GameObject to be used in identification
