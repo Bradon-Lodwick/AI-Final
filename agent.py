@@ -83,6 +83,71 @@ class Agent(GameObject):
         else:  # If a non-existent mode is given, throws an error
             raise ValueError('The given mode was not valid.', 'given mode = {}'.format(mode))
 
+    def ScanTargets(self):
+        bestdist = 0
+        best = 0
+        #finds the closest target in the targets found
+        for i in range(len(self.targets_found)):
+            curdist = self.heuristic = abs(self.targets_found[i][0] - self.location[0]) + abs(self.targets_found[i][1] - self.location[1])
+            if (curdist < bestdist):
+                best = i
+                bestdist = curdist
+        self.Pathfinding(best)
+
+
+    def Pathfinding(self, i):
+        #The manhattan distance is the heuristic of the search
+        targetx = self.targets_found[i][0]
+        targety = self.targets_found[i][1]
+
+        if (self.location[1] > targety):
+            YDir = settings.Direction.N
+        else:
+            YDir = settings.Direction.S
+
+        if(self.location[0] > targetx):
+            XDir = settings.Direction.W
+        else:
+            XDir = settings.Direction.E
+
+
+        xweight,yweight = 0,0
+        #determine whether the x or y is more viable to move along based on where it has been
+        #check X positions and make sure it is not on the same X
+        if (abs(targetx - self.location[0]) >= self.speed):
+            for j in range(0,self.speed):
+                #if it has found a position to the right
+                if(XDir == settings.Direction.W):
+                    if (self.memory[self.location[0] - j,self.location[1]] == 1):
+                        xweight = xweight + 1
+                else:
+                    if (self.memory[self.location[0] + j,self.location[1]] == 1):
+                        xweight = xweight + 1
+        #check Y positions and make sure it is not on the same Y
+        if (abs(targety - self.location[1]) >= self.speed):
+            for j in range(0, self.speed):
+                if(YDir == settings.Direction.N):
+                    if (self.memory[self.location[0], self.location[1] - j] == 1):
+                        yweight = yweight + 1
+                else:
+                    if (self.memory[self.location[0], self.location[1] + j] == 1):
+                        yweight = yweight + 1
+        #if the xweight is higher go towards the X
+        if (xweight >= yweight):
+            #if the agent should move along the X axis
+            self.move(XDir)
+        else:
+            #if the agent should move along the Y Axis
+            self.move(YDir)
+
+        #TODO:
+                #ADD SOMETHING TO RESCAN ON THE RADAR AND THEN RESUME THE PATHFINDING
+                #ADD TURNING RIGHT ON COLLISION AND COLLISION DETECTIONS,ETC.
+
+
+
+
+
     def move(self, direction, dist=settings.speed):
         """ Moves the bot in the given direction.
 
@@ -102,19 +167,54 @@ class Agent(GameObject):
 
         # Move North
         if direction == settings.Direction.N:
-            self.location[1] += dist
+            self.location[1] -= dist
         # Move East
         elif direction == settings.Direction.E:
             self.location[0] += dist
         # Move South
         elif direction == settings.Direction.S:
-            self.location[1] -= dist
+            self.location[1] += dist
         # Move West
         elif direction == settings.Direction.W:
             self.location[0] -= dist
         # Raise an error if the movement was invalid
         else:
             raise ValueError("Invalid direction. Use directions defined in the settings.Direction Enum.")
+
+    def weighted_movement(self):
+        weightN,weightS,weightE,weightW = 0,0,0,0
+
+        #check if it moves North if it will hit a wall
+        if (abs(self.location[1] - self.speed) >= 0):
+            for j in range(0, self.speed):
+                if (self.memory[self.location[0], self.location[1] - j] == 1):
+                    weightN = weightN + 1
+        #check if it moves south if it will hit a wall
+        if (abs(self.location[1] - self.speed) <= 100):
+            for j in range(0, self.speed):
+                if (self.memory[self.location[0], self.location[1] + j] == 1):
+                    weightS = weightS + 1
+        #check if it moves West if it will hit a wall
+        if (abs(self.location[0] - self.speed) >= 0):
+            for j in range(0,self.speed):
+                if (self.memory[self.location[0] + j,self.location[1]] == 1):
+                    weightW = weightW + 1
+        #check if it moves East if it will hit a wall
+        if (abs(self.location[0] + self.speed) <= 100):
+            for j in range(0,self.speed):
+                if (self.memory[self.location[0] + j,self.location[1]] == 1):
+                    weightW = weightW + 1
+        bestDist = max(weightN,weightS,weightE,weightW)
+        if(bestDist == weightN):
+            self.move(settings.Direction.N)
+        elif(bestDist == weightS):
+            self.move(settings.Direction.S)
+        elif (bestDist == weightE):
+            self.move(settings.Direction.E)
+        elif (bestDist == weightW):
+            self.move(settings.Direction.W)
+
+
 
     def move_agent_random(self, dist):
         # print("\n{} location: {}".format(self.name, self.get_location()))
