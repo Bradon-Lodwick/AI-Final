@@ -33,27 +33,66 @@ class GameField:
     def __init__(self, no_agents, no_targets_per_agent, mode):
         """ TODO still have to finish up this as well
         """
-        # Creates the needed number of agents, and their targets
+        # Creates the agent and target lists
         self.agents = list()
         self.targets = list()
-        for a_id in range(0, no_agents):
 
-            self.agents.append(Agent(self, a_id, ))
+        # Loops to create the necessary number of agents
+        for a_id in range(0, no_agents):
+            location = self.generate_unique_location()
+            new_agent = Agent(self, a_id, location)
+            self.agents.append(new_agent)
+
+            # Adds all the targets for the newly generated agent
+            for t_id in range(0, no_targets_per_agent):
+                location = self.generate_location()
+                new_target = Target(self, t_id, location, new_agent)
+                self.targets.append(new_target)
+
+        # Sets the game mode of the game field
+        self.mode = mode
 
     def generate_unique_location(self):
-        """ Returns a random location on the gamefield that is unoccupied by any other object on the game field.
+        """ Returns a random location on the game field that is unoccupied by any other object on the game field.
 
-        TODO - make it loop through all of the agent locations
+        Returns
+        -------
+        location : list
+            The unique location that was found in (x, y) format
+        """
 
+        # Value used to exit the loop
+        loc_found = False
+        while not loc_found:
+            # Generates the random x and y variables
+            x = random.randint(0, size_x)
+            y = random.randint(0, size_y)
+            location = (x, y)
+
+            # Loops through the agents to make sure the location is unique to the agent
+            loc_found_temp = True
+            for agent in self.agents:
+                # If the location is already taken by one of the agent's
+                if agent.get_location() == location:
+                    loc_found_temp = False
+                    break
+            # Set the location found value to the temporary value
+            loc_found = loc_found_temp
+
+        # Return the unique location that was found
+        return location
+
+    @staticmethod
+    def generate_location():
+        """ Returns a random location on the field.
+
+        Returns
+        -------
+        location : list
+            The random location in (x, y) format.
         """
         # Generates the random x and y variables
         x = random.randint(0, size_x)
         y = random.randint(0, size_y)
         location = (x, y)
-
-        # Loops through the agents to make sure the location is unique to the agent
-        for agent in self.agents:
-            # If the location is already taken by one of the agent's,
-            if agent.get_location() == location:
-                return -1
-
+        return location
