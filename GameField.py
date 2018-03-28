@@ -15,6 +15,7 @@ __status__ = "Prototype"
 from Settings import *
 from Agent import Agent
 from Target import Target
+import numpy as np
 import random
 
 
@@ -50,7 +51,22 @@ class GameField:
                 self.targets.append(new_target)
 
         # Sets the game mode of the game field
+        self.object_list = self.agents + self.targets
         self.mode = mode
+
+    def scan_radius(self, agent):
+        origin = (agent.centre_x, agent.centre_y)
+        surroundings = []
+
+        for obj in self.object_list:
+            if obj != agent:
+                loc = (obj.location[0], obj.location[1])
+                distance = np.sqrt((loc[0] - origin[0]) ** 2 + (loc[1] - origin[1]) ** 2)
+
+                if distance <= radar_radius:
+                    surroundings.append(obj)
+
+        return surroundings
 
     def generate_unique_location(self):
         """ Returns a random location on the game field that is unoccupied by any other object on the game field.
@@ -63,11 +79,12 @@ class GameField:
 
         # Value used to exit the loop
         loc_found = False
+        location = list()
         while not loc_found:
             # Generates the random x and y variables
             x = random.randint(0, size_x)
             y = random.randint(0, size_y)
-            location = (x, y)
+            location = [x, y]
 
             # Loops through the agents to make sure the location is unique to the agent
             loc_found_temp = True
@@ -94,5 +111,5 @@ class GameField:
         # Generates the random x and y variables
         x = random.randint(0, size_x)
         y = random.randint(0, size_y)
-        location = (x, y)
+        location = [x, y]
         return location

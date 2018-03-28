@@ -52,6 +52,7 @@ class Agent(GameObject):
         # Initializes the memory of the map that the agent has seen
         self.memory = np.ones(shape=(size_x, size_y))
         self.drawing_location = [self.location[0], self.location[1]]
+        self.winner = False
 
     def step(self):
         """
@@ -80,6 +81,10 @@ class Agent(GameObject):
             self.movement_mode = MoveModes.PATHFIND
 
         # Change target direction if agent in radar
+        if(self.ScanArea):
+            weighted_direction += 1
+            if(weighted_direction == 5):
+                weighted_direction = 1
         pass
 
         # Move in given direction
@@ -96,6 +101,25 @@ class Agent(GameObject):
         elif direction == Direction.W:
             self.location[0] -= speed
         self.drawing_location = [self.location[0]-11, self.location[1]-11]
+
+    def ScanArea(self):
+        nearby = self.game_field.scan_radius(self)
+        foundAgent = False
+        for obj in nearby:
+            if(isinstance(obj,Agent)):
+                #is another agent
+                foundAgent = True
+            if(isinstance(obj, self.game_field.Target) and obj.owner == self and not obj.collected):
+                #is a target that belongs to the agent and belongs to the agent
+                self.self_targets_found.append(obj)
+                obj.collect()
+                if len(self.other_targets_found) == no_targets_per_agent:
+                    self.winner = True
+            elif (isinstance(obj,self.game_field.Target) and (obj not in self.other_targets_found)):
+                #is a target that belongs to another agent
+                self.other_targets_found.append(obj)
+        return foundAgent
+
 
 
     def get_closest_target_location(self):
