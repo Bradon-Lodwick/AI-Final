@@ -243,7 +243,7 @@ class Agent(GameObject):
                     if (self.memory[self.location[0] - j,self.location[1]] == 1) and not (self.location[0] - j < 0):
                         weightW = weightW + 1
                 except IndexError:
-                    pass
+                    break
         # Checks for East
         if self.location[0] + speed <= 100 and target_x_weight != Direction.W:
             # Looks double the radar range in the given direction, and increases weight based on how many cells not
@@ -254,7 +254,7 @@ class Agent(GameObject):
                     if (self.memory[self.location[0] + j,self.location[1]] == 1) and not (self.location[0] + j > 100):
                         weightE = weightE + 1
                 except IndexError:
-                    pass
+                    break
 
         # Checks which weight is higher, in case of tie picks one at random
         current_best_weight = 0
