@@ -52,6 +52,7 @@ class Agent(GameObject):
         self.movement_mode = MoveModes.EXPLORE
         # Initializes the memory of the map that the agent has seen
         self.memory = np.ones(shape=(size_x, size_y))
+        self.prevstep = None
         self.drawing_location = [self.location[0] - 11, self.location[1] - 11]
         self.winner = False
         self.body = \
@@ -93,18 +94,8 @@ class Agent(GameObject):
             # Get closest target location
             desired_location = self.get_closest_target_location()
 
-        try:
-            if not(prevstep == None):
-                prevstep = weighted_direction
-        except UnboundLocalError:
-            prevstep = None
-            pass
-
         # Determine movement direction based on weight function
         weighted_direction = self.get_weighted_direction(desired_location)
-
-        if (prevstep == None):
-            prevstep = weighted_direction
 
         # Re-evaluate number of targets known
         if not len(self.self_targets_found) < no_targets_per_agent:
@@ -112,15 +103,17 @@ class Agent(GameObject):
 
         # Change target direction if agent in radar
         # TODO needs to change direction based on previous direction, not desired, to avoid collision
-        if(self.ScanArea):
-            if prevstep == Direction.N and self.location[0] + 1 < 100:
+        if self.ScanArea() and (not(self.prevstep == None)):
+            if self.prevstep == Direction.N and self.location[0] + 1 < 100:
                 weighted_direction = Direction.E
-            elif prevstep == Direction.E and self.location[1] + 1 < 100:
+            elif self.prevstep == Direction.E and self.location[1] + 1 < 100:
                 weighted_direction = Direction.S
-            elif prevstep == Direction.S and self.location[0] - 1 > 0:
+            elif self.prevstep == Direction.S and self.location[0] - 1 > 0:
                 weighted_direction = Direction.W
-            elif prevstep == Direction.W and self.location[0] - 1 > 0:
+            elif self.prevstep == Direction.W and self.location[0] - 1 > 0:
                 weighted_direction = Direction.N
+
+        self.prevstep = weighted_direction
 
         # Move in given direction
         self.move(weighted_direction)
@@ -134,6 +127,8 @@ class Agent(GameObject):
             self.location[0] += speed
         elif direction == Direction.W:
             self.location[0] -= speed
+        if (self.location[0] > 100 or self.location[0] < 0) or (self.location[1] > 100 or self.location[1] < 0):
+            print("O No")
         self.drawing_location = [self.location[0]-11, self.location[1]-11]
 
     def ScanArea(self):
@@ -143,7 +138,7 @@ class Agent(GameObject):
         nearby = self.game_field.scan_radius(self)
         foundAgent = False
         for obj in nearby:
-            if(isinstance(obj,Agent)):
+            if isinstance(obj,Agent):
                 #is another agent
                 foundAgent = True
             if(isinstance(obj, Target) and obj.owner == self and not obj.collected):
