@@ -75,7 +75,7 @@ class Agent(GameObject):
             "  +...............+  " \
             "   +.............+   " \
             "    ++.........++    " \
-            "      +++++++++      ".format(self.name)
+            "      +++++++++      ".format(self.g_id)
 
     def step(self):
         """
@@ -110,11 +110,11 @@ class Agent(GameObject):
             if weighted_direction == Direction.N:
                 weighted_direction = Direction.E
             elif weighted_direction == Direction.E:
-                weighted_direction == Direction.S
+                weighted_direction = Direction.S
             elif weighted_direction == Direction.S:
-                weighted_direction == Direction.W
+                weighted_direction = Direction.W
             elif weighted_direction == Direction.W:
-                weighted_direction == Direction.N
+                weighted_direction = Direction.N
 
         # Move in given direction
         self.move(weighted_direction)

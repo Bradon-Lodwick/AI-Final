@@ -47,7 +47,13 @@ def play_game(mode):
             for i in range(21):
                 for j in range(21):
                     if agent.body[j + i * 21] != ' ':
-                        terminal.printf(agent.drawing_location[0] + j, agent.drawing_location[1] + i, agent.body[j + i * 21])
+                        if (agent.body[j + i * 21] != '.'):
+                            terminal.printf(agent.drawing_location[0] + j, agent.drawing_location[1] + i, agent.body[j + i * 21])
+                        try:
+                            agent.memory[agent.drawing_location[0] + j, agent.drawing_location[1] + i] = 0
+                        except IndexError:
+                            pass
+
             # Steps current agent
             agent.step()
             #---IS WINNER?-------
