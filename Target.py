@@ -36,7 +36,7 @@ class Target(GameObject):
         self.name = "{} - {}".format(owner.g_id, g_id)
         self.collected = False
 
-    def set_collected(self):
+    def collect(self):
         self.collected = True
 
     def get_owner(self):

@@ -13,6 +13,7 @@ __version__ = "0.1"
 __status__ = "Prototype"
 
 from GameObject import GameObject
+from Target import Target
 from Settings import *
 from math import inf
 import numpy as np
@@ -139,13 +140,13 @@ class Agent(GameObject):
             if(isinstance(obj,Agent)):
                 #is another agent
                 foundAgent = True
-            if(isinstance(obj, self.game_field.Target) and obj.owner == self and not obj.collected):
+            if(isinstance(obj, Target) and obj.owner == self and not obj.collected):
                 #is a target that belongs to the agent and belongs to the agent
                 self.self_targets_found.append(obj)
                 obj.collect()
                 if len(self.other_targets_found) == no_targets_per_agent:
                     self.winner = True
-            elif (isinstance(obj,self.game_field.Target) and (obj not in self.other_targets_found)):
+            elif (isinstance(obj,Target) and (obj not in self.other_targets_found)):
                 #is a target that belongs to another agent
                 self.other_targets_found.append(obj)
         return foundAgent
@@ -211,46 +212,46 @@ class Agent(GameObject):
         # Each if statement checks which directions can be moved in based on if there is a wall or if it is locked from
         # path finding in that direction
         # Checks for North
-        if abs(self.location[1] - speed) >= 0 and target_y_weight != Direction.S:
+        if self.location[1] - speed >= 0 and target_y_weight != Direction.S:
             # Looks double the radar range in the given direction, and increases weight based on how many cells not
             # visited
             for j in range(0, radar_radius * 2):
                 # Tries until it hits a wall in the memory
                 try:
-                    if (self.memory[self.location[0], self.location[1] - j] == 1):
+                    if (self.memory[self.location[0], self.location[1] - j] == 1) and not (self.location[1] - j < 0):
                         weightN = weightN + 1
                 except IndexError:
                     break
         # Check for South
-        if abs(self.location[1] - speed) <= 100 and target_y_weight != Direction.N:
+        if self.location[1] - speed <= 100 and target_y_weight != Direction.N:
             # Looks double the radar range in the given direction, and increases weight based on how many cells not
             # visited
             for j in range(0, radar_radius * 2):
                 # Tries until it hits a wall in the memory
                 try:
-                    if (self.memory[self.location[0], self.location[1] + j] == 1):
+                    if (self.memory[self.location[0], self.location[1] + j] == 1) and not (self.location[1] + j > 100):
                         weightS = weightS + 1
                 except IndexError:
                     break
         # Checks for West
-        if abs(self.location[0] - speed) >= 0 and target_x_weight != Direction.E:
+        if self.location[0] - speed >= 0 and target_x_weight != Direction.E:
             # Looks double the radar range in the given direction, and increases weight based on how many cells not
             # visited
             for j in range(0, radar_radius * 2):
                 # Tries until it hits a wall in the memory
                 try:
-                    if (self.memory[self.location[0] - j,self.location[1]] == 1):
+                    if (self.memory[self.location[0] - j,self.location[1]] == 1) and not (self.location[0] - j < 0):
                         weightW = weightW + 1
                 except IndexError:
                     pass
         # Checks for East
-        if abs(self.location[0] + speed) <= 100 and target_x_weight != Direction.W:
+        if self.location[0] + speed <= 100 and target_x_weight != Direction.W:
             # Looks double the radar range in the given direction, and increases weight based on how many cells not
             # visited
             for j in range(0, radar_radius * 2):
                 # Tries until it hits a wall in the memory
                 try:
-                    if (self.memory[self.location[0] + j,self.location[1]] == 1):
+                    if (self.memory[self.location[0] + j,self.location[1]] == 1) and not (self.location[0] + j > 100):
                         weightE = weightE + 1
                 except IndexError:
                     pass
