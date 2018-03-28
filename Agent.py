@@ -51,6 +51,7 @@ class Agent(GameObject):
         self.movement_mode = MoveModes.EXPLORE
         # Initializes the memory of the map that the agent has seen
         self.memory = np.ones(shape=(size_x, size_y))
+        self.drawing_location = [self.location[0], self.location[1]]
 
     def step(self):
         """
@@ -82,7 +83,19 @@ class Agent(GameObject):
         pass
 
         # Move in given direction
+        self.move(weighted_direction)
         pass
+
+    def move(self, direction):
+        if direction == Direction.N:
+            self.location[1] -= speed
+        elif direction == Direction.S:
+            self.location[1] += speed
+        elif direction == Direction.E:
+            self.location[0] += speed
+        elif direction == Direction.W:
+            self.location[0] -= speed
+        self.drawing_location = [self.location[0]-11, self.location[1]-11]
 
 
     def get_closest_target_location(self):
@@ -96,7 +109,7 @@ class Agent(GameObject):
         best_dist = inf
         best = None
         # finds the closest target in the targets found
-        for target in self.targets_found:
+        for target in self.self_targets_found:
             target_loc = target.get_location()
             dist_to_target = abs(target_loc[0] - self.location[0]) + abs(target_loc[1] - self.location[1])
             if dist_to_target < best_dist:

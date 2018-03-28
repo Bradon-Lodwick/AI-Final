@@ -64,7 +64,7 @@ class Agent:
         self.centre_x = self.loc_x + 11
         self.centre_y = self.loc_y + 11
         self.field = None
-        self.target_list = targets_to_collect
+        self.num_targets_to_find = targets_to_collect
         self.targets_found = []
         self.winner = False
 
@@ -131,7 +131,7 @@ class Agent:
     def found_target(self, tar):
         if not tar in self.targets_found:
             self.targets_found.append(tar)
-        if(len(self.targets_found) == self.target_list):
+        if len(self.targets_found) == self.num_targets_to_find:
             self.winner = True
 
 
