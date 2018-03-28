@@ -33,6 +33,7 @@ class Target(GameObject):
     def __init__(self, game_field, g_id, location, owner):
         GameObject.__init__(self, game_field, g_id, location)
         self.owner = owner
+        self.name = "owner" + "-" + 'g_id'
         self.collected = False
 
     def set_collected(self):
