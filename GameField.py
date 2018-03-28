@@ -55,7 +55,7 @@ class GameField:
         self.mode = mode
 
     def scan_radius(self, agent):
-        origin = (agent.centre_x, agent.centre_y)
+        origin = (agent.location[0], agent.location[1])
         surroundings = []
 
         for obj in self.object_list:
