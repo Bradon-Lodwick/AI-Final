@@ -10,6 +10,10 @@ no_agents = 5
 # The number of targets for each agent
 no_targets_per_agent = 5
 
+# TERMINAL SETTINGS
+# The refresh rate of the terminal
+refresh = 0.1
+
 # AGENT SETTINGS
 # Speed of the agents
 speed = 1

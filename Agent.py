@@ -103,6 +103,8 @@ class Agent(GameObject):
             self.movement_mode = MoveModes.PATHFIND
 
         # Change target direction if agent in radar
+        # TODO needs to change direction based on previous direction, not desired, to avoid collision
+        # TODO need to write to memory after scan occurs
         if(self.ScanArea):
             weighted_direction += 1
             if(weighted_direction == 5):
@@ -232,21 +234,26 @@ class Agent(GameObject):
                     weightE = weightE + 1
 
         # Checks which weight is higher, in case of tie picks one at random
-        current_best = 0
+        current_best_weight = 0
+        current_best_direction = 0
         # Checks all weights, and in case of ties picks one at random
         # Checks North weight
-        if current_best <  weightN or (current_best == weightN and random.randint(0, 1) == 0):
-            current_best = Direction.N
+        if current_best_weight <  weightN or (current_best_weight == weightN and random.randint(0, 1) == 0):
+            current_best_direction = Direction.N
+            current_best_weight = weightN
         # Checks East weight
-        if current_best <  weightE or (current_best == weightE and random.randint(0, 1) == 0):
-            current_best = Direction.E
+        if current_best_weight <  weightE or (current_best_weight == weightE and random.randint(0, 1) == 0):
+            current_best_direction = Direction.E
+            current_best_weight = weightE
         # Checks South weight
-        if current_best <  weightS or (current_best == weightS and random.randint(0, 1) == 0):
-            current_best = Direction.E
+        if current_best_weight <  weightS or (current_best_weight == weightS and random.randint(0, 1) == 0):
+            current_best_direction = Direction.S
+            current_best_weight = weightS
         # Checks West weight
-        if current_best <  weightW or (current_best == weightW and random.randint(0, 1) == 0):
-            current_best = Direction.W
+        if current_best_weight <  weightW or (current_best_weight == weightW and random.randint(0, 1) == 0):
+            current_best_direction = Direction.W
+            current_best_weight = weightW
 
         # Return the current best weighted direction
-        return current_best
+        return current_best_direction
 

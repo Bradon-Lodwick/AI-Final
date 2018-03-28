@@ -12,24 +12,13 @@ __author__ = "Bradon Lodwick, Reid Butson, Thomas Reis"
 __version__ = "0.1"
 __status__ = "Prototype"
 
-import GameField
+import time
+from GameField import GameField
 from bearlibterminal import terminal
 from Settings import *
 
-def print_agent(terminal, agent):
-    """
 
-    :param terminal:
-    :param agent:
-    :return:
-    """
-
-    for i in range(21):
-        for j in range(21):
-            if agent.body[j + i * 21] != ' ':
-                terminal.printf(agent.loc_x + j, agent.loc_y + i, agent.body[j + i * 21])
-
-def play_game(game_mode):
+def play_game(mode):
     """ The main method of the game.  Creates the game field and all game objects, as defined in Settings.py, and
     runs the game until the win condition occurs.
 
@@ -39,26 +28,43 @@ def play_game(game_mode):
         The game mode that the game is to be played in.
     """
 
-    game_field = GameField(no_agents, no_targets_per_agent, game_mode.COMPETITIVE)
+    game_field = GameField(no_agents, no_targets_per_agent, mode)
     terminal.open()
     terminal.set("window: size={}x{}, cellsize=8x8".format(size_x, size_y))
+
+    winner_list = list()
 
     # Runs the game in a never ending loop, breaks when win occurs
     while True:
         # Draws all of the targets
         for tar in game_field.targets:
             tar_location = tar.get_location()
-            terminal.printf(tar_location[0], tar_location[1], tar.get_id())
+            terminal.printf(tar_location[0], tar_location[1], "{}".format(tar.get_id()))
 
         #-------AGENT STUFF----------
         for agent in game_field.agents:
+            # Prints out the agents to the terminal
+            for i in range(21):
+                for j in range(21):
+                    if agent.body[j + i * 21] != ' ':
+                        terminal.printf(agent.drawing_location[0] + j, agent.drawing_location[1] + i, agent.body[j + i * 21])
+            # Steps current agent
+            agent.step()
+            #---IS WINNER?-------
+            if agent.winner:
+                winner_list.append(agent)
 
-            #------DRAW AGENT--------
-            #------MOVE AGENT--------
-                #---IS WINNER?-------
+        for i in range(len(winner_list)):
+            terminal.printf(0, i * 2, "Winner: {}".format(winner_list[i].name))
 
         #-----BREAK TO WIN SEQUENCE--
 
         #----REFRESH TERMINAL--------
+        time.sleep(refresh)
+        terminal.refresh()
+        terminal.clear()
 
     #-----WIN SEQUENCE
+
+
+play_game(GameModes.COMPETITIVE)

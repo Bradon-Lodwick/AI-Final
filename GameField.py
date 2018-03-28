@@ -28,6 +28,8 @@ class GameField:
             The list of agents that are on the game field.
         targets : list
             The list of targets that are on the game field.
+        object_list : list
+            The list of all targets and agents on the game field.
         mode : str
             The game mode that the game is to be played in.
         """
