@@ -6,9 +6,9 @@ from enum import Enum
 size_x = 100
 size_y = 100
 # The number of agents on the game field
-no_agents = 5
+no_agents = 1
 # The number of targets for each agent
-no_targets_per_agent = 5
+no_targets_per_agent = 1
 
 # TERMINAL SETTINGS
 # The refresh rate of the terminal

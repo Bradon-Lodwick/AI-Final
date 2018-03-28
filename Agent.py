@@ -52,7 +52,7 @@ class Agent(GameObject):
         self.movement_mode = MoveModes.EXPLORE
         # Initializes the memory of the map that the agent has seen
         self.memory = np.ones(shape=(size_x, size_y))
-        self.prevstep = None
+        self.prev_step = None
         self.drawing_location = [self.location[0] - 11, self.location[1] - 11]
         self.winner = False
         self.body = \
@@ -83,7 +83,7 @@ class Agent(GameObject):
 
         TODO
         ----
-        * Add ability for agents to pathfind towards their targets while exploring if they are nearby
+        * Add ability for agents to path find towards their targets while exploring if they are nearby
         * Add a weight to the target depending on how many targets it knows the location
         """
 
@@ -103,17 +103,17 @@ class Agent(GameObject):
 
         # Change target direction if agent in radar
         # TODO needs to change direction based on previous direction, not desired, to avoid collision
-        if self.ScanArea() and (not(self.prevstep == None)):
-            if self.prevstep == Direction.N and self.location[0] + 1 < 100:
+        if self.scan_area() and (not(self.prev_step is None)):
+            if self.prev_step == Direction.N and self.location[0] + 1 < 100:
                 weighted_direction = Direction.E
-            elif self.prevstep == Direction.E and self.location[1] + 1 < 100:
+            elif self.prev_step == Direction.E and self.location[1] + 1 < 100:
                 weighted_direction = Direction.S
-            elif self.prevstep == Direction.S and self.location[0] - 1 > 0:
+            elif self.prev_step == Direction.S and self.location[0] - 1 > 0:
                 weighted_direction = Direction.W
-            elif self.prevstep == Direction.W and self.location[0] - 1 > 0:
+            elif self.prev_step == Direction.W and self.location[0] - 1 > 0:
                 weighted_direction = Direction.N
 
-        self.prevstep = weighted_direction
+        self.prev_step = weighted_direction
 
         # Move in given direction
         self.move(weighted_direction)
@@ -131,28 +131,26 @@ class Agent(GameObject):
             print("O No")
         self.drawing_location = [self.location[0]-11, self.location[1]-11]
 
-    def ScanArea(self):
+    def scan_area(self):
         """ Scans the area for game objects, updating its memory as it finds targets. Returns whether an agent is within
         its radar
         """
         nearby = self.game_field.scan_radius(self)
-        foundAgent = False
+        found_agent = False
         for obj in nearby:
-            if isinstance(obj,Agent):
-                #is another agent
-                foundAgent = True
-            if(isinstance(obj, Target) and obj.owner == self and not obj.collected):
-                #is a target that belongs to the agent and belongs to the agent
+            if isinstance(obj, Agent):
+                # is another agent
+                found_agent = True
+            if isinstance(obj, Target) and obj.owner == self and not obj.collected:
+                # is a target that belongs to the agent and belongs to the agent
                 self.self_targets_found.append(obj)
                 obj.collect()
                 if len(self.other_targets_found) == no_targets_per_agent:
                     self.winner = True
-            elif (isinstance(obj,Target) and (obj not in self.other_targets_found)):
-                #is a target that belongs to another agent
+            elif isinstance(obj, Target) and (obj not in self.other_targets_found):
+                # is a target that belongs to another agent
                 self.other_targets_found.append(obj)
-        return foundAgent
-
-
+        return found_agent
 
     def get_closest_target_location(self):
         """ Returns the closest found target's location.
@@ -208,7 +206,7 @@ class Agent(GameObject):
                 target_x_weight = Direction.E
 
         # Initializes the weight of all the directions
-        weightN, weightE, weightS, weightW = 0, 0, 0, 0
+        weight_n, weight_e, weight_s, weight_w = 0, 0, 0, 0
 
         # Each if statement checks which directions can be moved in based on if there is a wall or if it is locked from
         # path finding in that direction
@@ -220,7 +218,7 @@ class Agent(GameObject):
                 # Tries until it hits a wall in the memory
                 try:
                     if (self.memory[self.location[0], self.location[1] - j] == 1) and not (self.location[1] - j < 0):
-                        weightN = weightN + 1
+                        weight_n = weight_n + 1
                 except IndexError:
                     break
         # Check for South
@@ -231,7 +229,7 @@ class Agent(GameObject):
                 # Tries until it hits a wall in the memory
                 try:
                     if (self.memory[self.location[0], self.location[1] + j] == 1) and not (self.location[1] + j > 100):
-                        weightS = weightS + 1
+                        weight_s = weight_s + 1
                 except IndexError:
                     break
         # Checks for West
@@ -242,7 +240,7 @@ class Agent(GameObject):
                 # Tries until it hits a wall in the memory
                 try:
                     if (self.memory[self.location[0] - j,self.location[1]] == 1) and not (self.location[0] - j < 0):
-                        weightW = weightW + 1
+                        weight_w = weight_w + 1
                 except IndexError:
                     break
         # Checks for East
@@ -253,7 +251,7 @@ class Agent(GameObject):
                 # Tries until it hits a wall in the memory
                 try:
                     if (self.memory[self.location[0] + j,self.location[1]] == 1) and not (self.location[0] + j > 100):
-                        weightE = weightE + 1
+                        weight_e = weight_e + 1
                 except IndexError:
                     break
 
@@ -262,27 +260,27 @@ class Agent(GameObject):
         current_best_direction = 0
         current_best_val = 0
         # Checks all weights, and in case of ties picks one at random
-        Nval,Sval,Eval,Wval = random.randint(0,100), random.randint(0,100), random.randint(0,100), random.randint(0,100)
+        n_val, s_val, e_val, w_val = random.randint(0,100), random.randint(0,100), random.randint(0,100), random.randint(0,100)
         # Checks North weight
-        if current_best_weight <  weightN:
+        if current_best_weight < weight_n:
             current_best_direction = Direction.N
-            current_best_weight = weightN
-            current_best_val = Nval
+            current_best_weight = weight_n
+            current_best_val = n_val
         # Checks East weight
-        if current_best_weight <  weightE or (current_best_weight == weightE and Eval > current_best_val):
+        if current_best_weight < weight_e or (current_best_weight == weight_e and e_val > current_best_val):
             current_best_direction = Direction.E
-            current_best_weight = weightE
-            current_best_val = Eval
+            current_best_weight = weight_e
+            current_best_val = e_val
         # Checks South weight
-        if current_best_weight <  weightS or (current_best_weight == weightS and Sval > current_best_val):
+        if current_best_weight < weight_s or (current_best_weight == weight_s and s_val > current_best_val):
             current_best_direction = Direction.S
-            current_best_weight = weightS
-            current_best_val = Sval
+            current_best_weight = weight_s
+            current_best_val = s_val
         # Checks West weight
-        if current_best_weight <  weightW or (current_best_weight == weightW and Wval > current_best_val):
+        if current_best_weight < weight_w or (current_best_weight == weight_w and w_val > current_best_val):
             current_best_direction = Direction.W
-            current_best_weight = weightW
-            current_best_val = Wval
+            current_best_weight = weight_w
+            current_best_val = w_val
 
         # Return the current best weighted direction
         return current_best_direction
