@@ -84,8 +84,8 @@ class GameField:
         location = list()
         while not loc_found:
             # Generates the random x and y variables
-            x = random.randint(0, size_x)
-            y = random.randint(0, size_y)
+            x = random.randint(1, size_x)
+            y = random.randint(1, size_y)
             location = [x, y]
 
             # Loops through the agents to make sure the location is unique to the agent
@@ -111,7 +111,7 @@ class GameField:
             The random location in (x, y) format.
         """
         # Generates the random x and y variables
-        x = random.randint(0, size_x)
-        y = random.randint(0, size_y)
+        x = random.randint(1, size_x)
+        y = random.randint(1, size_y)
         location = [x, y]
         return location

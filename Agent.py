@@ -52,7 +52,7 @@ class Agent(GameObject):
         self.movement_mode = MoveModes.EXPLORE
         # Initializes the memory of the map that the agent has seen
         self.memory = np.ones(shape=(size_x, size_y))
-        self.drawing_location = [self.location[0], self.location[1]]
+        self.drawing_location = [self.location[0] - 11, self.location[1] - 11]
         self.winner = False
         self.body = \
             "      +++++++++      " \
@@ -93,11 +93,18 @@ class Agent(GameObject):
             # Get closest target location
             desired_location = self.get_closest_target_location()
 
+        try:
+            if not(prevstep == None):
+                prevstep = weighted_direction
+        except UnboundLocalError:
+            prevstep = None
+            pass
+
         # Determine movement direction based on weight function
         weighted_direction = self.get_weighted_direction(desired_location)
 
-        # Scan radar
-        pass
+        if (prevstep == None):
+            prevstep = weighted_direction
 
         # Re-evaluate number of targets known
         if not len(self.self_targets_found) < no_targets_per_agent:
@@ -105,15 +112,14 @@ class Agent(GameObject):
 
         # Change target direction if agent in radar
         # TODO needs to change direction based on previous direction, not desired, to avoid collision
-        # TODO need to write to memory after scan occurs
         if(self.ScanArea):
-            if weighted_direction == Direction.N:
+            if prevstep == Direction.N and self.location[0] + 1 < 100:
                 weighted_direction = Direction.E
-            elif weighted_direction == Direction.E:
+            elif prevstep == Direction.E and self.location[1] + 1 < 100:
                 weighted_direction = Direction.S
-            elif weighted_direction == Direction.S:
+            elif prevstep == Direction.S and self.location[0] - 1 > 0:
                 weighted_direction = Direction.W
-            elif weighted_direction == Direction.W:
+            elif prevstep == Direction.W and self.location[0] - 1 > 0:
                 weighted_direction = Direction.N
 
         # Move in given direction
@@ -212,7 +218,7 @@ class Agent(GameObject):
         # Each if statement checks which directions can be moved in based on if there is a wall or if it is locked from
         # path finding in that direction
         # Checks for North
-        if self.location[1] - speed >= 0 and target_y_weight != Direction.S:
+        if self.location[1] - speed > 0 and target_y_weight != Direction.S:
             # Looks double the radar range in the given direction, and increases weight based on how many cells not
             # visited
             for j in range(0, radar_radius * 2):
@@ -223,7 +229,7 @@ class Agent(GameObject):
                 except IndexError:
                     break
         # Check for South
-        if self.location[1] - speed <= 100 and target_y_weight != Direction.N:
+        if self.location[1] + speed < 100 and target_y_weight != Direction.N:
             # Looks double the radar range in the given direction, and increases weight based on how many cells not
             # visited
             for j in range(0, radar_radius * 2):
@@ -234,7 +240,7 @@ class Agent(GameObject):
                 except IndexError:
                     break
         # Checks for West
-        if self.location[0] - speed >= 0 and target_x_weight != Direction.E:
+        if self.location[0] - speed > 0 and target_x_weight != Direction.E:
             # Looks double the radar range in the given direction, and increases weight based on how many cells not
             # visited
             for j in range(0, radar_radius * 2):
@@ -245,7 +251,7 @@ class Agent(GameObject):
                 except IndexError:
                     break
         # Checks for East
-        if self.location[0] + speed <= 100 and target_x_weight != Direction.W:
+        if self.location[0] + speed < 100 and target_x_weight != Direction.W:
             # Looks double the radar range in the given direction, and increases weight based on how many cells not
             # visited
             for j in range(0, radar_radius * 2):
@@ -259,23 +265,29 @@ class Agent(GameObject):
         # Checks which weight is higher, in case of tie picks one at random
         current_best_weight = 0
         current_best_direction = 0
+        current_best_val = 0
         # Checks all weights, and in case of ties picks one at random
+        Nval,Sval,Eval,Wval = random.randint(0,100), random.randint(0,100), random.randint(0,100), random.randint(0,100)
         # Checks North weight
-        if current_best_weight <  weightN or (current_best_weight == weightN and random.randint(0, 1) == 0):
+        if current_best_weight <  weightN:
             current_best_direction = Direction.N
             current_best_weight = weightN
+            current_best_val = Nval
         # Checks East weight
-        if current_best_weight <  weightE or (current_best_weight == weightE and random.randint(0, 1) == 0):
+        if current_best_weight <  weightE or (current_best_weight == weightE and Eval > current_best_val):
             current_best_direction = Direction.E
             current_best_weight = weightE
+            current_best_val = Eval
         # Checks South weight
-        if current_best_weight <  weightS or (current_best_weight == weightS and random.randint(0, 1) == 0):
+        if current_best_weight <  weightS or (current_best_weight == weightS and Sval > current_best_val):
             current_best_direction = Direction.S
             current_best_weight = weightS
+            current_best_val = Sval
         # Checks West weight
-        if current_best_weight <  weightW or (current_best_weight == weightW and random.randint(0, 1) == 0):
+        if current_best_weight <  weightW or (current_best_weight == weightW and Wval > current_best_val):
             current_best_direction = Direction.W
             current_best_weight = weightW
+            current_best_val = Wval
 
         # Return the current best weighted direction
         return current_best_direction
