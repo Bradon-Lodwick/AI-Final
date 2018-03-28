@@ -39,7 +39,7 @@ def play_game(mode):
         # Draws all of the targets
         for tar in game_field.targets:
             tar_location = tar.get_location()
-            terminal.printf(tar_location[0], tar_location[1], "{}".format(tar.get_id()))
+            terminal.printf(tar_location[0], tar_location[1], "{}".format(tar.name))
 
         #-------AGENT STUFF----------
         for agent in game_field.agents:

@@ -106,14 +106,17 @@ class Agent(GameObject):
         # TODO needs to change direction based on previous direction, not desired, to avoid collision
         # TODO need to write to memory after scan occurs
         if(self.ScanArea):
-            weighted_direction += 1
-            if(weighted_direction == 5):
-                weighted_direction = 1
-        pass
+            if weighted_direction == Direction.N:
+                weighted_direction = Direction.E
+            elif weighted_direction == Direction.E:
+                weighted_direction == Direction.S
+            elif weighted_direction == Direction.S:
+                weighted_direction == Direction.W
+            elif weighted_direction == Direction.W:
+                weighted_direction == Direction.N
 
         # Move in given direction
         self.move(weighted_direction)
-        pass
 
     def move(self, direction):
         if direction == Direction.N:
@@ -127,6 +130,9 @@ class Agent(GameObject):
         self.drawing_location = [self.location[0]-11, self.location[1]-11]
 
     def ScanArea(self):
+        """ Scans the area for game objects, updating its memory as it finds targets. Returns whether an agent is within
+        its radar
+        """
         nearby = self.game_field.scan_radius(self)
         foundAgent = False
         for obj in nearby:
@@ -209,29 +215,45 @@ class Agent(GameObject):
             # Looks double the radar range in the given direction, and increases weight based on how many cells not
             # visited
             for j in range(0, radar_radius * 2):
-                if (self.memory[self.location[0], self.location[1] - j] == 1):
-                    weightN = weightN + 1
+                # Tries until it hits a wall in the memory
+                try:
+                    if (self.memory[self.location[0], self.location[1] - j] == 1):
+                        weightN = weightN + 1
+                except IndexError:
+                    break
         # Check for South
         if abs(self.location[1] - speed) <= 100 and target_y_weight != Direction.N:
             # Looks double the radar range in the given direction, and increases weight based on how many cells not
             # visited
             for j in range(0, radar_radius * 2):
-                if (self.memory[self.location[0], self.location[1] + j] == 1):
-                    weightS = weightS + 1
+                # Tries until it hits a wall in the memory
+                try:
+                    if (self.memory[self.location[0], self.location[1] + j] == 1):
+                        weightS = weightS + 1
+                except IndexError:
+                    break
         # Checks for West
         if abs(self.location[0] - speed) >= 0 and target_x_weight != Direction.E:
             # Looks double the radar range in the given direction, and increases weight based on how many cells not
             # visited
             for j in range(0, radar_radius * 2):
-                if (self.memory[self.location[0] - j,self.location[1]] == 1):
-                    weightW = weightW + 1
+                # Tries until it hits a wall in the memory
+                try:
+                    if (self.memory[self.location[0] - j,self.location[1]] == 1):
+                        weightW = weightW + 1
+                except IndexError:
+                    pass
         # Checks for East
         if abs(self.location[0] + speed) <= 100 and target_x_weight != Direction.W:
             # Looks double the radar range in the given direction, and increases weight based on how many cells not
             # visited
             for j in range(0, radar_radius * 2):
-                if (self.memory[self.location[0] + j,self.location[1]] == 1):
-                    weightE = weightE + 1
+                # Tries until it hits a wall in the memory
+                try:
+                    if (self.memory[self.location[0] + j,self.location[1]] == 1):
+                        weightE = weightE + 1
+                except IndexError:
+                    pass
 
         # Checks which weight is higher, in case of tie picks one at random
         current_best_weight = 0
