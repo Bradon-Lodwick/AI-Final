@@ -53,6 +53,28 @@ class Agent(GameObject):
         self.memory = np.ones(shape=(size_x, size_y))
         self.drawing_location = [self.location[0], self.location[1]]
         self.winner = False
+        self.body = \
+            "      +++++++++      " \
+            "    ++         ++    " \
+            "   +             +   " \
+            "  +               +  " \
+            " +                 + " \
+            " +                 + " \
+            "+                   +" \
+            "+                   +" \
+            "+                   +" \
+            "+                   +" \
+            "+         {}         +" \
+            "+                   +" \
+            "+                   +" \
+            "+                   +" \
+            "+                   +" \
+            " +                 + " \
+            " +                 + " \
+            "  +               +  " \
+            "   +             +   " \
+            "    ++         ++    " \
+            "      +++++++++      ".format(self.g_id)
 
     def step(self):
         """
