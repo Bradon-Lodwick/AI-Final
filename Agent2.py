@@ -95,12 +95,13 @@ class Agent(GameObject):
         return distance
 
     def step(self):
+        #TODO Collect steps when running away
         in_area = self.scanArea()
 
         if len(in_area) > 0:
             self.run_away = True
             self.goal = self.escape_zone(in_area)
-        elif not self.run_away:
+        elif not self.run_away and len(self.destinations) != 0:
             self.destinations.sort(key= lambda x: self.distance_from_self(x))
             self.goal = self.destinations[0]
 
@@ -114,7 +115,8 @@ class Agent(GameObject):
             self.direct = 0
 
         if self.location[0] == self.goal[0] and self.location[1] == self.goal[1] and not self.run_away:
-            self.goal = self.destinations.pop(0)
+            if len(self.destinations) != 0:
+                self.goal = self.destinations.pop(0)
 
         if self.location[0] == self.goal[0] and self.location[1] == self.goal[1] and self.run_away:
             self.run_away = False
@@ -122,7 +124,7 @@ class Agent(GameObject):
         if self.checkMove(self.direct):
             self.move(self.direct)
 
-        else:
+        elif len(self.destinations) != 0:
             self.goal = self.destinations[0]
 
 

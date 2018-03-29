@@ -12,7 +12,7 @@ no_targets_per_agent = 5
 
 # TERMINAL SETTINGS
 # The refresh rate of the terminal
-refresh = 0.2
+refresh = 0.05
 
 # AGENT SETTINGS
 # Speed of the agents
