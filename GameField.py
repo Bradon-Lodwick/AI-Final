@@ -13,7 +13,7 @@ __version__ = "0.1"
 __status__ = "Prototype"
 
 from Settings import *
-from Agent import Agent
+from Agent2 import Agent
 from Target import Target
 import numpy as np
 import random
