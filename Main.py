@@ -24,7 +24,7 @@ def play_game(mode):
 
     Parameters
     ----------
-    game_mode : GameModes
+    Parameters mode : GameModes
         The game mode that the game is to be played in.
     """
 
@@ -41,13 +41,13 @@ def play_game(mode):
             tar_location = tar.get_location()
             terminal.printf(tar_location[0], tar_location[1], "{}".format(tar.name))
 
-        #-------AGENT STUFF----------
+        # -------AGENT STUFF----------
         for agent in game_field.agents:
             # Prints out the agents to the terminal
             for i in range(21):
                 for j in range(21):
                     if agent.body[j + i * 21] != ' ':
-                        if (agent.body[j + i * 21] != '.'):
+                        if agent.body[j + i * 21] != '.':
                             terminal.printf(agent.drawing_location[0] + j, agent.drawing_location[1] + i, agent.body[j + i * 21])
                         try:
                             agent.memory[agent.drawing_location[0] + j, agent.drawing_location[1] + i] = 0
@@ -56,21 +56,22 @@ def play_game(mode):
 
             # Steps current agent
             agent.step()
-            #---IS WINNER?-------
+            # ------IS WINNER?------
             if agent.winner:
                 winner_list.append(agent)
 
         for i in range(len(winner_list)):
-            terminal.printf(0, i * 2, "Winner: {}".format(winner_list[i].name))
+            terminal.printf(0, i * 2, "Winner: {}".format(winner_list[i].g_id))
 
-        #-----BREAK TO WIN SEQUENCE--
+        # -----BREAK TO WIN SEQUENCE-----
 
-        #----REFRESH TERMINAL--------
+        # -------REFRESH TERMINAL--------
         time.sleep(refresh)
         terminal.refresh()
         terminal.clear()
 
-    #-----WIN SEQUENCE
+    # -----WIN SEQUENCE-----
 
 
+# Starts the game
 play_game(GameModes.COMPETITIVE)
