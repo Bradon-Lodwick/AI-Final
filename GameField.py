@@ -70,6 +70,7 @@ class GameField:
 
         return surroundings
 
+    # Debug Function to return all targets belonging to the given agent
     def ReturnAllTargets(self, agent):
         targets=[]
         for obj in self.object_list:

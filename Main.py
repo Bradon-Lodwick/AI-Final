@@ -57,7 +57,7 @@ def play_game(mode):
             # Steps current agent
             agent.step()
             # ------IS WINNER?------
-            if agent.winner:
+            if agent.winner and agent not in winner_list:
                 winner_list.append(agent)
 
         for i in range(len(winner_list)):

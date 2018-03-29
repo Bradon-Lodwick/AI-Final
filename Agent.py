@@ -45,10 +45,14 @@ class Agent(GameObject):
             TODO add a value to store previous movement direction to allow collision avoidance to force right turns
         """
         GameObject.__init__(self, game_field, g_id, location)
+
+        # Debug Value to let the agent know where its points are
+        self.KnownPoints = True
+        self.Backtrack = 0
+
         # Creates the empty lists for the targets the agent has found
         self.self_targets_found = list()
         self.self_targets_known = list()
-
         self.other_targets_found = list()
         # Initializes the agent's movement to the exploration mode
         self.movement_mode = MoveModes.EXPLORE
@@ -88,9 +92,15 @@ class Agent(GameObject):
         * Add ability for agents to path find towards their targets while exploring if they are nearby
         * Add a weight to the target depending on how many targets it knows the location
         """
-        #Adds all targets to the agent so it knows where everything is
-        for obj in self.game_field.ReturnAllTargets(self):
-            self.self_targets_known.append(obj)
+        #Debug Method to Add Known Points to the Agent
+        if self.KnownPoints:
+            for obj in self.game_field.ReturnAllTargets(self):
+                self.self_targets_known.append(obj)
+            self.KnownPoints = False
+
+        # if the agent knows the location of all of its targets
+        if len(self.self_targets_known) >= no_targets_per_agent:
+            self.movement_mode = MoveModes.PATHFIND
 
         # The location that the agent is aiming to go to
         desired_location = None
@@ -102,26 +112,41 @@ class Agent(GameObject):
         # Determine movement direction based on weight function
         weighted_direction = self.get_weighted_direction(desired_location)
 
-        # Re-evaluate number of targets known
-        if not len(self.self_targets_known) < no_targets_per_agent:
-            self.movement_mode = MoveModes.PATHFIND
-
         # Change target direction if agent in radar
         # TODO needs to change direction based on previous direction, not desired, to avoid collision
-        if self.scan_area() and (not(self.prev_step is None)):
-            if self.prev_step == Direction.N and self.location[0] + 1 < 100:
+        if self.scan_area() and (not(self.prev_step is None)) and self.Backtrack == 0:
+            if self.check_move(Direction.N) and self.prev_step == Direction.N:
                 weighted_direction = Direction.E
-            elif self.prev_step == Direction.E and self.location[1] + 1 < 100:
+            elif self.check_move(Direction.E) and self.prev_step == Direction.E:
                 weighted_direction = Direction.S
-            elif self.prev_step == Direction.S and self.location[0] - 1 > 0:
+            elif self.check_move(Direction.S) and self.prev_step == Direction.S:
                 weighted_direction = Direction.W
-            elif self.prev_step == Direction.W and self.location[0] - 1 > 0:
+            elif self.check_move(Direction.W) and self.prev_step == Direction.W:
                 weighted_direction = Direction.N
+            self.Backtrack = radar_radius
+            self.prev_step = weighted_direction
 
-        self.prev_step = weighted_direction
+        if self.Backtrack == 0:
+            # Move in given direction
+            self.move(weighted_direction)
+            self.prev_step = weighted_direction
+        else:
+            #if it is going north and will not go out of bounds
+            if self.check_move(self.prev_step):
+                self.move(self.prev_step)
+            self.Backtrack -= 1
 
-        # Move in given direction
-        self.move(weighted_direction)
+    def check_move(self, direction):
+        if direction == Direction.N and self.location[1] - speed > 0:
+            return True
+        elif direction == Direction.E and self.location[0] + speed < 100:
+            return True
+        elif direction == Direction.S and self.location[1] + speed < 100:
+            return True
+        elif direction == Direction.W and self.location[0] - speed > 0:
+            return True
+        else:
+            return False
 
     def move(self, direction):
         if direction == Direction.N:
@@ -149,13 +174,14 @@ class Agent(GameObject):
             if isinstance(obj, Target) and obj.owner == self and not obj.collected:
                 # is a target that belongs to the agent and belongs to the agent
                 self.self_targets_found.append(obj)
-                for obj2 in self.self_targets_known:
-                    if obj2 == obj:
-                        self.self_targets_known.remove(obj2)
+
+                if obj in self.self_targets_known:
+                    self.self_targets_known.remove(obj)
+
                 obj.collect()
-                if len(self.other_targets_found) == no_targets_per_agent:
+                if len(self.self_targets_found) == no_targets_per_agent:
                     self.winner = True
-            elif isinstance(obj, Target) and (obj not in self.other_targets_found):
+            elif isinstance(obj, Target) and obj.owner != self and (obj not in self.other_targets_found):
                 # is a target that belongs to another agent
                 self.other_targets_found.append(obj)
         return found_agent
@@ -171,7 +197,7 @@ class Agent(GameObject):
         best_dist = inf
         best = None
         # finds the closest target in the targets found
-        for target in self.self_targets_found:
+        for target in self.self_targets_known:
             target_loc = target.get_location()
             dist_to_target = abs(target_loc[0] - self.location[0]) + abs(target_loc[1] - self.location[1])
             if dist_to_target < best_dist:
@@ -197,6 +223,12 @@ class Agent(GameObject):
         # Weighted direction from given target
         target_x_weight = 0
         target_y_weight = 0
+        weight_n, weight_e, weight_s, weight_w = 0, 0, 0, 0
+
+        #DEBUG
+        if target is None:
+            pass
+
         # Checks if target was given
         if target is not None:
             desired_x = target[0]
@@ -205,16 +237,21 @@ class Agent(GameObject):
             # Locks off directions that do not lead to the target
             if self.location[1] > desired_y:
                     target_y_weight = Direction.N
-            else:
+            elif self.location[1] < desired_y:
                     target_y_weight = Direction.S
+            elif self.location[1] == desired_y:
+                weight_n = -100
+                weight_s = -100
 
             if self.location[0] > desired_x:
                 target_x_weight = Direction.W
-            else:
+            elif self.location[0] < desired_x:
                 target_x_weight = Direction.E
+            elif self.location[0] == desired_x:
+                weight_e = -100
+                weight_w = -100
 
         # Initializes the weight of all the directions
-        weight_n, weight_e, weight_s, weight_w = 0, 0, 0, 0
 
         # Each if statement checks which directions can be moved in based on if there is a wall or if it is locked from
         # path finding in that direction
