@@ -114,7 +114,7 @@ class Agent(GameObject):
 
         # Change target direction if agent in radar
         # TODO needs to change direction based on previous direction, not desired, to avoid collision
-        if self.scan_area() and (not(self.prev_step is None)) and self.Backtrack == 0:
+        if self.scan_area() and (not(self.prev_step is None)):
             if self.check_move(Direction.N) and self.prev_step == Direction.N:
                 weighted_direction = Direction.E
             elif self.check_move(Direction.E) and self.prev_step == Direction.E:
@@ -128,8 +128,9 @@ class Agent(GameObject):
 
         if self.Backtrack == 0:
             # Move in given direction
-            self.move(weighted_direction)
-            self.prev_step = weighted_direction
+            if self.check_move(weighted_direction):
+                self.move(weighted_direction)
+                self.prev_step = weighted_direction
         else:
             #if it is going north and will not go out of bounds
             if self.check_move(self.prev_step):
@@ -237,16 +238,20 @@ class Agent(GameObject):
             # Locks off directions that do not lead to the target
             if self.location[1] > desired_y:
                     target_y_weight = Direction.N
+                    weight_s = -100
             elif self.location[1] < desired_y:
                     target_y_weight = Direction.S
+                    weight_n = -100
             elif self.location[1] == desired_y:
                 weight_n = -100
                 weight_s = -100
 
             if self.location[0] > desired_x:
                 target_x_weight = Direction.W
+                weight_e = -100
             elif self.location[0] < desired_x:
                 target_x_weight = Direction.E
+                weight_w = -100
             elif self.location[0] == desired_x:
                 weight_e = -100
                 weight_w = -100
@@ -262,7 +267,7 @@ class Agent(GameObject):
             for j in range(0, radar_radius * 2):
                 # Tries until it hits a wall in the memory
                 try:
-                    if (self.memory[self.location[0], self.location[1] - j] == 1) and not (self.location[1] - j < 0):
+                    if (self.memory[self.location[0], self.location[1] - j] == 1) and self.location[1] - j > 0:
                         weight_n = weight_n + 1
                 except IndexError:
                     break
@@ -273,7 +278,7 @@ class Agent(GameObject):
             for j in range(0, radar_radius * 2):
                 # Tries until it hits a wall in the memory
                 try:
-                    if (self.memory[self.location[0], self.location[1] + j] == 1) and not (self.location[1] + j > 100):
+                    if (self.memory[self.location[0], self.location[1] + j] == 1) and self.location[1] + j < 100:
                         weight_s = weight_s + 1
                 except IndexError:
                     break
@@ -284,7 +289,7 @@ class Agent(GameObject):
             for j in range(0, radar_radius * 2):
                 # Tries until it hits a wall in the memory
                 try:
-                    if (self.memory[self.location[0] - j,self.location[1]] == 1) and not (self.location[0] - j < 0):
+                    if (self.memory[self.location[0] - j, self.location[1]] == 1) and self.location[0] - j > 0:
                         weight_w = weight_w + 1
                 except IndexError:
                     break
@@ -295,13 +300,13 @@ class Agent(GameObject):
             for j in range(0, radar_radius * 2):
                 # Tries until it hits a wall in the memory
                 try:
-                    if (self.memory[self.location[0] + j,self.location[1]] == 1) and not (self.location[0] + j > 100):
+                    if (self.memory[self.location[0] + j,self.location[1]] == 1) and self.location[0] + j < 100:
                         weight_e = weight_e + 1
                 except IndexError:
                     break
 
         # Checks which weight is higher, in case of tie picks one at random
-        current_best_weight = 0
+        current_best_weight = -100
         current_best_direction = 0
         current_best_val = 0
         # Checks all weights, and in case of ties picks one at random
