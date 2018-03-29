@@ -47,6 +47,8 @@ class Agent(GameObject):
         GameObject.__init__(self, game_field, g_id, location)
         # Creates the empty lists for the targets the agent has found
         self.self_targets_found = list()
+        self.self_targets_known = list()
+
         self.other_targets_found = list()
         # Initializes the agent's movement to the exploration mode
         self.movement_mode = MoveModes.EXPLORE
@@ -86,6 +88,9 @@ class Agent(GameObject):
         * Add ability for agents to path find towards their targets while exploring if they are nearby
         * Add a weight to the target depending on how many targets it knows the location
         """
+        #Adds all targets to the agent so it knows where everything is
+        for obj in self.game_field.ReturnAllTargets(self):
+            self.self_targets_known.append(obj)
 
         # The location that the agent is aiming to go to
         desired_location = None
@@ -98,7 +103,7 @@ class Agent(GameObject):
         weighted_direction = self.get_weighted_direction(desired_location)
 
         # Re-evaluate number of targets known
-        if not len(self.self_targets_found) < no_targets_per_agent:
+        if not len(self.self_targets_known) < no_targets_per_agent:
             self.movement_mode = MoveModes.PATHFIND
 
         # Change target direction if agent in radar
@@ -144,6 +149,9 @@ class Agent(GameObject):
             if isinstance(obj, Target) and obj.owner == self and not obj.collected:
                 # is a target that belongs to the agent and belongs to the agent
                 self.self_targets_found.append(obj)
+                for obj2 in self.self_targets_known:
+                    if obj2 == obj:
+                        self.self_targets_known.remove(obj2)
                 obj.collect()
                 if len(self.other_targets_found) == no_targets_per_agent:
                     self.winner = True

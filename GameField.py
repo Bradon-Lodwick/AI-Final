@@ -70,6 +70,14 @@ class GameField:
 
         return surroundings
 
+    def ReturnAllTargets(self, agent):
+        targets=[]
+        for obj in self.object_list:
+            if obj != agent:
+                if (isinstance(obj,Target) and obj.owner == agent):
+                    targets.append(obj)
+        return targets
+
     def generate_unique_location(self):
         """ Returns a random location on the game field that is unoccupied by any other object on the game field.
 
