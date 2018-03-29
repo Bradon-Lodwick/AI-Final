@@ -39,7 +39,7 @@ def play_game(mode):
         # Draws all of the targets
         for tar in game_field.targets:
             tar_location = tar.get_location()
-            terminal.printf(tar_location[0], tar_location[1], "{}".format(tar.name))
+            terminal.printf(tar_location[0], tar_location[1], ".")
 
         #-------AGENT STUFF----------
         for agent in game_field.agents:
@@ -53,15 +53,19 @@ def play_game(mode):
                             agent.memory[agent.drawing_location[0] + j, agent.drawing_location[1] + i] = 0
                         except IndexError:
                             pass
+            try:
+                terminal.printf(agent.destinations[0][0], agent.destinations[0][1], "X{}".format(agent.g_id))
+            except:
+                pass
 
             # Steps current agent
             agent.step()
             #---IS WINNER?-------
-            if agent.winner:
+            if agent.winner and agent not in winner_list:
                 winner_list.append(agent)
 
         for i in range(len(winner_list)):
-            terminal.printf(0, i * 2, "Winner: {}".format(winner_list[i].name))
+            terminal.printf(0, i * 2, "Winner: {}".format(winner_list[i].g_id))
 
         #-----BREAK TO WIN SEQUENCE--
 

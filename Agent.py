@@ -150,7 +150,7 @@ class Agent(GameObject):
                 #is a target that belongs to the agent and belongs to the agent
                 self.self_targets_found.append(obj)
                 obj.collect()
-                if len(self.other_targets_found) == no_targets_per_agent:
+                if len(self.self_targets_found) == no_targets_per_agent:
                     self.winner = True
             elif (isinstance(obj,Target) and (obj not in self.other_targets_found)):
                 #is a target that belongs to another agent

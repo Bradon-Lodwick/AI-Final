@@ -38,6 +38,7 @@ class Target(GameObject):
 
     def collect(self):
         self.collected = True
+        self.name = "X{}X".format(self.owner.g_id)
 
     def get_owner(self):
         """ Gets the owner of the agent.

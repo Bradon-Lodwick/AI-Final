@@ -44,8 +44,8 @@ class Agent(GameObject):
         """ TODO add a list for targets known but not collected
             TODO add a value to store previous movement direction to allow collision avoidance to force right turns
         """
-        print("yes hello I am agent 2")
         GameObject.__init__(self, game_field, g_id, location)
+        print("yes hello I am agent {}".format(self.g_id))
         # Creates the empty lists for the targets the agent has found
         self.self_targets_found = list()
         self.other_targets_found = list()
@@ -53,9 +53,13 @@ class Agent(GameObject):
         # Initializes the agent's movement to the exploration mode
         self.movement_mode = MoveModes.EXPLORE
         # Initializes the memory of the map that the agent has seen
+        self.direct = None
         self.memory = np.ones(shape=(size_x, size_y))
         self.drawing_location = [self.location[0] - 10, self.location[1] - 10]
         self.winner = False
+        self.run_away = False
+        self.last_collison = 1
+        self.goal = []
         self.body = \
             "      +++++++++      " \
             "    ++.........++    " \
@@ -81,34 +85,98 @@ class Agent(GameObject):
 
         self.add_sub_locations()
 
-
     def add_sub_locations(self):
         for i in range(int(size_x/10)):
             for j in range(int(size_y/10)):
-                self.destinations.append((i*10+5, j*10+5))
-
-
+                self.destinations.append([i*10+5, j*10+5])
 
     def distance_from_self(self, coord):
         distance = abs(coord[0] - self.location[0]) + abs(coord[1] - self.location[1])
         return distance
 
     def step(self):
-        if len(self.destinations) != 0:
-            self.destinations.sort(key=lambda x: self.distance_from_self(x))
-            if self.location[0] < self.destinations[0][0]:
-                self.location[0] += 1
-                self.drawing_location = [self.location[0] - 10, self.location[1] - 10]
-            elif self.location[0] > self.destinations[0][0]:
-                self.location[0] -= 1
-                self.drawing_location = [self.location[0] - 10, self.location[1] - 10]
-            elif self.location[1] < self.destinations[0][1]:
-                self.location[1] += 1
-                self.drawing_location = [self.location[0] - 10, self.location[1] - 10]
-            elif self.location[1] > self.destinations[0][1]:
-                self.location[1] -= 1
-                self.drawing_location = [self.location[0] - 10, self.location[1] - 10]
+        in_area = self.scanArea()
 
-            if self.location[0] == self.destinations[0][0] and self.location[1] == self.destinations[0][1]:
-                self.destinations.pop(0)
+        if len(in_area) > 0:
+            self.run_away = True
+            self.goal = self.escape_zone(in_area)
+        else:
+            self.destinations.sort(key= lambda x: self.distance_from_self(x))
+            self.goal = self.destinations[0]
+
+        if self.location[0] < self.goal[0]:
+            self.direct = 1
+        elif self.location[0] > self.goal[0]:
+            self.direct = 3
+        elif self.location[1] < self.goal[1]:
+            self.direct = 2
+        elif self.location[1] > self.goal[1]:
+            self.direct = 0
+
+        if self.location[0] == self.goal[0] and self.location[1] == self.goal[1] and not self.run_away:
+            self.goal = self.destinations.pop(0)
+
+        if self.location[0] == self.goal[0] and self.location[1] == self.goal[1] and self.run_away:
+            self.run_away = False
+
+        if self.checkMove(self.direct):
+            self.move(self.direct)
+
+
+    def escape_zone(self, enemies, factor = 1):
+        num_e = len(enemies)
+        avg_x, avg_y = 0,0
+        for e in enemies:
+            avg_x += e.location[0]/num_e
+            avg_y += e.location[1]/num_e
+
+        escape_destination = [int(factor*(2*self.location[0] - avg_x)), int(factor*(2*self.location[1] - avg_y))]
+        return escape_destination
+
+    def move(self, direction):
+        if direction == 0:
+            self.location[1] -= speed
+        elif direction == 2:
+            self.location[1] += speed
+        elif direction == 1:
+            self.location[0] += speed
+        elif direction == 3:
+            self.location[0] -= speed
+        self.drawing_location = [self.location[0]-10, self.location[1]-10]
+
+    def checkMove(self, direction):
+        if direction == 1 and self.location[0] + speed < 100:
+            return True
+        elif direction == 2 and self.location[1] + speed < 100:
+            return True
+        elif direction == 3 and self.location[0] - speed > 0:
+            return True
+        elif direction == 0 and self.location[1] - speed > 0:
+            return True
+        else:
+            return False
+
+    def scanArea(self):
+        """ Scans the area for game objects, updating its memory as it finds targets. Returns whether an agent is within
+        its radar
+        """
+        nearby = self.game_field.scan_radius(self)
+        foundAgent = []
+        for obj in nearby:
+            if(isinstance(obj,Agent)):
+                #is another agent
+                foundAgent.append(obj)
+            if(isinstance(obj, Target) and obj.owner == self and not obj.collected):
+                #is a target that belongs to the agent and belongs to the agent
+                self.self_targets_found.append(obj)
+                obj.collect()
+                #print("HAHA got {}".format(len(self.self_targets_found)))
+                if len(self.self_targets_found) == no_targets_per_agent:
+                    print("WIN!")
+                    self.winner = True
+            elif (isinstance(obj,Target) and obj.owner != self and (obj not in self.other_targets_found)):
+                #is a target that belongs to another agent
+                self.other_targets_found.append(obj)
+
+        return foundAgent
 
