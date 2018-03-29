@@ -77,4 +77,4 @@ def play_game(mode):
     #-----WIN SEQUENCE
 
 
-play_game(GameModes.COMPETITIVE)
+play_game(GameModes.COOPERATIVE)
