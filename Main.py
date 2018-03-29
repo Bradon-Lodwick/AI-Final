@@ -54,7 +54,7 @@ def play_game(mode):
                         except IndexError:
                             pass
             try:
-                terminal.printf(agent.destinations[0][0], agent.destinations[0][1], "X{}".format(agent.g_id))
+                terminal.printf(agent.goal[0], agent.goal[1], "X{}".format(agent.g_id))
             except:
                 pass
 

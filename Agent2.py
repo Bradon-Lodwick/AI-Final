@@ -100,7 +100,7 @@ class Agent(GameObject):
         if len(in_area) > 0:
             self.run_away = True
             self.goal = self.escape_zone(in_area)
-        else:
+        elif not self.run_away:
             self.destinations.sort(key= lambda x: self.distance_from_self(x))
             self.goal = self.destinations[0]
 
@@ -122,15 +122,18 @@ class Agent(GameObject):
         if self.checkMove(self.direct):
             self.move(self.direct)
 
+        else:
+            self.goal = self.destinations[0]
+
 
     def escape_zone(self, enemies, factor = 1):
         num_e = len(enemies)
         avg_x, avg_y = 0,0
         for e in enemies:
-            avg_x += e.location[0]/num_e
-            avg_y += e.location[1]/num_e
+            avg_x += int(e.location[0]/num_e)
+            avg_y += int(e.location[1]/num_e)
 
-        escape_destination = [int(factor*(2*self.location[0] - avg_x)), int(factor*(2*self.location[1] - avg_y))]
+        escape_destination = [factor*(2*self.location[0] - avg_x), factor*(2*self.location[1] - avg_y)]
         return escape_destination
 
     def move(self, direction):
