@@ -58,7 +58,7 @@ class Agent(GameObject):
         self.drawing_location = [self.location[0] - 10, self.location[1] - 10]
         self.winner = False
         self.run_away = False
-        self.last_collison = 1
+        self.last_collision = 1
         self.goal = []
         self.body = \
             "      +++++++++      " \
@@ -95,14 +95,15 @@ class Agent(GameObject):
         return distance
 
     def step(self):
-        #TODO Collect steps when running away
+        # TODO Collect steps when running away
         in_area = self.scanArea()
 
         if len(in_area) > 0:
             self.run_away = True
             self.goal = self.escape_zone(in_area)
+
         elif not self.run_away and len(self.destinations) != 0:
-            self.destinations.sort(key= lambda x: self.distance_from_self(x))
+            self.destinations.sort(key=lambda x: self.distance_from_self(x))
             self.goal = self.destinations[0]
 
         if self.location[0] < self.goal[0]:
@@ -121,16 +122,15 @@ class Agent(GameObject):
         if self.location[0] == self.goal[0] and self.location[1] == self.goal[1] and self.run_away:
             self.run_away = False
 
-        if self.checkMove(self.direct):
+        if self.checkMove(self.direct) and (len(self.destinations) != 0 or self.run_away):
             self.move(self.direct)
 
         elif len(self.destinations) != 0:
             self.goal = self.destinations[0]
 
-
-    def escape_zone(self, enemies, factor = 1):
+    def escape_zone(self, enemies, factor=1):
         num_e = len(enemies)
-        avg_x, avg_y = 0,0
+        avg_x, avg_y = 0, 0
         for e in enemies:
             avg_x += int(e.location[0]/num_e)
             avg_y += int(e.location[1]/num_e)
