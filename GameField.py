@@ -143,12 +143,10 @@ class GameField:
         # Checks if an agent was given
         # No agent, public channel
         if target_agent is None:
-            for info in information:
-                self.public_info.append([agent, info])
+                self.public_info.append([agent, information])
         # Agent given, private channel
         else:
-            for info in information:
-                self.private_info.append([agent, target_agent, info])
+                self.private_info.append([agent, target_agent, information])
 
     def get_from_channels(self, agent_requesting):
         """ Gets information pertaining to the agent from the public and private channels.

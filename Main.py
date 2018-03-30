@@ -41,13 +41,18 @@ def play_game(mode):
 
         ag0 = game_field.agents[0]
 
-        for dest in ag0.destinations:
-            terminal.printf(dest[0], dest[1], "{}".format(ag0.get_weight(dest, ag0.memory)))
+       # for dest in ag0.destinations:
+        #    terminal.printf(dest[0], dest[1], "{}".format(ag0.get_weight(dest, ag0.memory)))
 
         # Draws all of the targets
         for tar in game_field.targets:
             tar_location = tar.get_location()
             terminal.printf(tar_location[0], tar_location[1], "{}".format(tar.name))
+
+        for i in range(size_x):
+            for j in range(size_y):
+                if ag0.memory[i][j] == 1:
+                    terminal.printf(i,j,".")
 
         #-------AGENT STUFF----------
         for agent in game_field.agents:

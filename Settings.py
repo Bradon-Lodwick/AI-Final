@@ -6,7 +6,7 @@ from enum import Enum
 size_x = 100
 size_y = 100
 # The number of agents on the game field
-no_agents = 2
+no_agents = 5
 # The number of targets for each agent
 no_targets_per_agent = 5
 

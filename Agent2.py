@@ -219,7 +219,8 @@ class Agent(GameObject):
             for j in range(21):
                 try:
                     if 0 <= self.drawing_location[0] + j < 100 and 0 <= self.drawing_location[1] + i < 100:
-                        self.memory[self.drawing_location[0] + j, self.drawing_location[1] + i] = 0
+                        if self.body[j + i * 21] != ' ':
+                            self.memory[self.drawing_location[0] + j, self.drawing_location[1] + i] = 0
                 except IndexError:
                     pass
 
@@ -261,7 +262,7 @@ class Agent(GameObject):
             if isinstance(info, np.ndarray):
                 # Multiplies the new memory with its own, so it doesn't go and check areas that the given information
                 # already said was covered
-                self.memory = self.memory * info
+                self.memory *= info
 
             # Target information
             elif isinstance(info, Target):
