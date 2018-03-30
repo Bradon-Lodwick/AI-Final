@@ -96,6 +96,7 @@ class Agent(GameObject):
 
     def step(self):
         # TODO Collect steps when running away
+        self.get_info()
         in_area = self.scanArea()
 
         if len(in_area) > 0 and not self.run_away:
@@ -131,6 +132,18 @@ class Agent(GameObject):
 
         elif len(self.destinations) != 0:
             self.goal = self.destinations[0]
+
+        # Checks which game mode it is in to determine how it should communicate
+        if self.game_field.mode == GameModes.COMPETITIVE:
+            # Currently no communication is done in competitive, but eventually trading targets based on happiness
+            # could be added
+            pass
+        elif self.game_field.mode == GameModes.COMPASSIONATE:
+            # Shares memory to public channel
+            self.post_info(self.memory)
+        elif self.game_field.mode == GameModes.COOPERATIVE:
+            # Shares memory to public channel
+            self.post_info(self.memory)
 
     def escape_zone(self, enemies, factor=1):
         # TODO add jitter
@@ -199,6 +212,7 @@ class Agent(GameObject):
 
         return foundAgent
 
+<<<<<<< HEAD
     def memorize(self):
         for i in range(21):
             for j in range(21):
@@ -209,3 +223,60 @@ class Agent(GameObject):
                 except IndexError:
                     pass
 
+=======
+    def post_info(self, information, target=None):
+        """ Post information to the public channel. Will be stored in the game field.
+
+        Parameters
+        ----------
+        information : list()
+            The list of information to be sent to the public channel.
+        target : Agent
+            The agent to send to in case private communication is desired. None if public desired.
+
+        """
+
+        # Posts the information to game_field
+        self.game_field.post_to_channels(information, self, target)
+
+    def get_info(self):
+        """ Retrieves information from the game field, from both private and public channels, and processes it.
+        """
+
+        # Gets the info from the game field
+        information_list = self.game_field.get_from_channels(self)
+
+        # Loops through all of the information that was sent by the game field
+        for single_info_list in information_list:
+            # If the info was from a private channel, set all variables
+            if len(single_info_list) == 3:
+                agent_sent = single_info_list[0]
+                info = single_info_list[2]
+            # If the info was sent on public channel, set all variables
+            else:
+                agent_sent = single_info_list[0]
+                info = single_info_list[1]
+
+            # Deal with each type of information differently
+            # Memory information
+            if isinstance(info, np.ndarray):
+                # Multiplies the new memory with its own, so it doesn't go and check areas that the given information
+                # already said was covered
+                self.memory = self.memory * info
+
+            # Target information
+            elif isinstance(info, Target):
+                # Adds the target to the necessary target memory based on its owner
+                # If target belongs to this agent
+                if info.owner == self and not info in self.self_targets_found:
+                    # TODO After merging, this needs to be changed so that it appends to the proper target list
+                    self.self_targets_found.append(info)
+                # If target belongs to another agent
+                elif info.owner != self and not info in self.other_targets_found:
+                    self.other_targets_found.append(info)
+            # Agent information
+            elif isinstance(info, Agent):
+                # Currently only a pass, as it doesn't do anything with information about where an agent is, but is
+                # here in case it is needed in the future
+                pass
+>>>>>>> 356aea1d4775c015a17ac2c81f1b228836c3a3b5
