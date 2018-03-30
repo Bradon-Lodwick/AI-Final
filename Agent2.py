@@ -31,7 +31,7 @@ class Agent(GameObject):
             The id of the game object.
         location : list
             The location of the object on the game field.
-        self_targets_found : list
+        targets_collected : list
             The list of targets that the agent has found for itself.
         other_targets_found : list
             The list of targets that the agent has found for other agents.
@@ -47,6 +47,7 @@ class Agent(GameObject):
         GameObject.__init__(self, game_field, g_id, location)
         print("yes hello I am agent {}".format(self.g_id))
         # Creates the empty lists for the targets the agent has found
+        self.targets_collected = list()
         self.self_targets_found = list()
         self.other_targets_found = list()
         self.destinations = []
@@ -141,10 +142,17 @@ class Agent(GameObject):
         elif self.game_field.mode == GameModes.COMPASSIONATE:
             # Shares memory to public channel
             self.post_info(self.memory)
+            # Share target information to the other agent
+            for target in self.other_targets_found:
+                self.post_info(target, target=target.owner)
+                self.other_targets_found.remove(target)
         elif self.game_field.mode == GameModes.COOPERATIVE:
             # Shares memory to public channel
             self.post_info(self.memory)
-
+            # Share target information to the other agent
+            for target in self.other_targets_found:
+                self.post_info(target, target=target.owner)
+                self.other_targets_found.remove(target)
 
     def escape_zone(self, enemies, factor=1):
         # TODO add jitter
@@ -202,10 +210,10 @@ class Agent(GameObject):
                 found_agent.append(obj)
             if isinstance(obj, Target) and obj.owner == self and not obj.collected:
                 # is a target that belongs to the agent and belongs to the agent
-                self.self_targets_found.append(obj)
+                self.targets_collected.append(obj)
                 obj.collect()
                 # print("HAHA got {}".format(len(self.self_targets_found)))
-                if len(self.self_targets_found) == no_targets_per_agent:
+                if len(self.targets_collected) == no_targets_per_agent:
                     print("WIN!")
                     self.winner = True
             elif isinstance(obj, Target) and obj.owner != self and (obj not in self.other_targets_found):
@@ -268,9 +276,9 @@ class Agent(GameObject):
             elif isinstance(info, Target):
                 # Adds the target to the necessary target memory based on its owner
                 # If target belongs to this agent
-                if info.owner == self and info not in self.self_targets_found:
+                if info.owner == self and info not in self.targets_collected:
                     # TODO After merging, this needs to be changed so that it appends to the proper target list
-                    self.self_targets_found.append(info)
+                    self.targets_collected.append(info)
                 # If target belongs to another agent
                 elif info.owner != self and info not in self.other_targets_found:
                     self.other_targets_found.append(info)
