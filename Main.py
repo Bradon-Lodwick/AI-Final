@@ -92,4 +92,4 @@ def play_game(mode):
         terminal.close()
 
 
-play_game(GameModes.COMPETITIVE)
+play_game(GameModes.COOPERATIVE)

@@ -43,4 +43,3 @@ class Direction(Enum):
     E = 2
     S = 3
     W = 4
-
