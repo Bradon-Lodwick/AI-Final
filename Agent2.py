@@ -98,7 +98,7 @@ class Agent(GameObject):
         # TODO Collect steps when running away
         in_area = self.scanArea()
 
-        if len(in_area) > 0:
+        if len(in_area) > 0 and not self.run_away:
             self.run_away = True
             self.goal = self.escape_zone(in_area)
 
@@ -198,4 +198,14 @@ class Agent(GameObject):
                 self.other_targets_found.append(obj)
 
         return foundAgent
+
+    def memorize(self):
+        for i in range(21):
+            for j in range(21):
+                try:
+                    if (0 <= self.drawing_location[0] + j and self.drawing_location[0] + j < 100 and
+                            0 <= self.drawing_location[1] + i and self.drawing_location[1] + i < 100):
+                        self.memory[self.drawing_location[0] + j, self.drawing_location[1] + i] = 0
+                except IndexError:
+                    pass
 
