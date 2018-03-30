@@ -12,13 +12,13 @@ no_targets_per_agent = 5
 
 # TERMINAL SETTINGS
 # The refresh rate of the terminal
-refresh = 0.01
+refresh = 0.0
 
 # AGENT SETTINGS
 # Speed of the agents
 speed = 1
 # Radar range of the agents
-radar_radius = 10
+radar_radius = 20
 
 
 class MoveModes(Enum):

@@ -32,10 +32,18 @@ def play_game(mode):
     terminal.open()
     terminal.set("window: size={}x{}, cellsize=8x8".format(size_x, size_y))
 
+    terminal_read = []
+
     winner_list = list()
 
     # Runs the game in a never ending loop, breaks when win occurs
     while True:
+
+        ag0 = game_field.agents[0]
+
+        for dest in ag0.destinations:
+            terminal.printf(dest[0], dest[1], "{}".format(ag0.get_weight(dest, ag0.memory)))
+
         # Draws all of the targets
         for tar in game_field.targets:
             tar_location = tar.get_location()
@@ -49,8 +57,13 @@ def play_game(mode):
                     if agent.body[j + i * 21] != ' ':
                         if (agent.body[j + i * 21] != '.'):
                             terminal.printf(agent.drawing_location[0] + j, agent.drawing_location[1] + i, agent.body[j + i * 21])
+
+                        # TODO this updates memory, should be moved to agent
                         try:
-                            agent.memory[agent.drawing_location[0] + j, agent.drawing_location[1] + i] = 0
+                            if(0 <= agent.drawing_location[0] + j and agent.drawing_location[0] + j < 100 and
+                                       0 <= agent.drawing_location[1] + i and agent.drawing_location[1] + i < 100):
+
+                                agent.memory[agent.drawing_location[0] + j, agent.drawing_location[1] + i] = 0
                         except IndexError:
                             pass
             try:
@@ -75,6 +88,8 @@ def play_game(mode):
         terminal.clear()
 
     #-----WIN SEQUENCE
+    if terminal_read() != terminal.TK_CLOSE:
+        terminal.close()
 
 
 play_game(GameModes.COMPETITIVE)

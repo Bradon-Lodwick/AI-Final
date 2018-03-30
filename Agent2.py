@@ -103,8 +103,12 @@ class Agent(GameObject):
             self.goal = self.escape_zone(in_area)
 
         elif not self.run_away and len(self.destinations) != 0:
-            self.destinations.sort(key=lambda x: self.distance_from_self(x))
-            self.goal = self.destinations[0]
+            for dest in self.destinations:
+                if self.get_weight(dest, self.memory) == 0:
+                    self.destinations.remove(dest)
+            if len(self.destinations) != 0:
+                self.destinations.sort(key=lambda x: (self.distance_from_self(x), -self.get_weight(x, self.memory)))
+                self.goal = self.destinations[0]
 
         if self.location[0] < self.goal[0]:
             self.direct = 1
@@ -129,6 +133,7 @@ class Agent(GameObject):
             self.goal = self.destinations[0]
 
     def escape_zone(self, enemies, factor=1):
+        # TODO add jitter
         num_e = len(enemies)
         avg_x, avg_y = 0, 0
         for e in enemies:
@@ -150,6 +155,7 @@ class Agent(GameObject):
         self.drawing_location = [self.location[0]-10, self.location[1]-10]
 
     def checkMove(self, direction):
+        # TODO return approved coordinates
         if direction == 1 and self.location[0] + speed < 100:
             return True
         elif direction == 2 and self.location[1] + speed < 100:
@@ -160,6 +166,14 @@ class Agent(GameObject):
             return True
         else:
             return False
+
+    def get_weight(self, coord, map):
+        weight = 0
+        for i in range(coord[0]-5, coord[0]+5):
+            for j in range(coord[1]-5, coord[1]+5):
+                if (0 <= j and j < 100 and 0 <= i and i < 100):
+                    weight += map[i][j]
+        return weight
 
     def scanArea(self):
         """ Scans the area for game objects, updating its memory as it finds targets. Returns whether an agent is within
