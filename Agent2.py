@@ -97,7 +97,7 @@ class Agent(GameObject):
     def step(self):
         # TODO Collect steps when running away
         self.get_info()
-        in_area = self.scanArea()
+        in_area = self.scan_area()
 
         if len(in_area) > 0 and not self.run_away:
             self.run_away = True
@@ -127,7 +127,7 @@ class Agent(GameObject):
         if self.location[0] == self.goal[0] and self.location[1] == self.goal[1] and self.run_away:
             self.run_away = False
 
-        if self.checkMove(self.direct) and (len(self.destinations) != 0 or self.run_away):
+        if self.check_move(self.direct) and (len(self.destinations) != 0 or self.run_away):
             self.move(self.direct)
 
         elif len(self.destinations) != 0:
@@ -144,6 +144,7 @@ class Agent(GameObject):
         elif self.game_field.mode == GameModes.COOPERATIVE:
             # Shares memory to public channel
             self.post_info(self.memory)
+
 
     def escape_zone(self, enemies, factor=1):
         # TODO add jitter
@@ -167,7 +168,7 @@ class Agent(GameObject):
             self.location[0] -= speed
         self.drawing_location = [self.location[0]-10, self.location[1]-10]
 
-    def checkMove(self, direction):
+    def check_move(self, direction):
         # TODO return approved coordinates
         if direction == 1 and self.location[0] + speed < 100:
             return True
@@ -180,50 +181,48 @@ class Agent(GameObject):
         else:
             return False
 
-    def get_weight(self, coord, map):
+    @staticmethod
+    def get_weight(coord, mat):
         weight = 0
         for i in range(coord[0]-5, coord[0]+5):
             for j in range(coord[1]-5, coord[1]+5):
-                if (0 <= j and j < 100 and 0 <= i and i < 100):
-                    weight += map[i][j]
+                if 0 <= j < 100 and 0 <= i < 100:
+                    weight += mat[i][j]
         return weight
 
-    def scanArea(self):
+    def scan_area(self):
         """ Scans the area for game objects, updating its memory as it finds targets. Returns whether an agent is within
         its radar
         """
         nearby = self.game_field.scan_radius(self)
-        foundAgent = []
+        found_agent = []
         for obj in nearby:
-            if(isinstance(obj,Agent)):
-                #is another agent
-                foundAgent.append(obj)
-            if(isinstance(obj, Target) and obj.owner == self and not obj.collected):
-                #is a target that belongs to the agent and belongs to the agent
+            if isinstance(obj, Agent):
+                # is another agent
+                found_agent.append(obj)
+            if isinstance(obj, Target) and obj.owner == self and not obj.collected:
+                # is a target that belongs to the agent and belongs to the agent
                 self.self_targets_found.append(obj)
                 obj.collect()
-                #print("HAHA got {}".format(len(self.self_targets_found)))
+                # print("HAHA got {}".format(len(self.self_targets_found)))
                 if len(self.self_targets_found) == no_targets_per_agent:
                     print("WIN!")
                     self.winner = True
-            elif (isinstance(obj,Target) and obj.owner != self and (obj not in self.other_targets_found)):
-                #is a target that belongs to another agent
+            elif isinstance(obj, Target) and obj.owner != self and (obj not in self.other_targets_found):
+                # is a target that belongs to another agent
                 self.other_targets_found.append(obj)
 
-        return foundAgent
+        return found_agent
 
-<<<<<<< HEAD
     def memorize(self):
         for i in range(21):
             for j in range(21):
                 try:
-                    if (0 <= self.drawing_location[0] + j and self.drawing_location[0] + j < 100 and
-                            0 <= self.drawing_location[1] + i and self.drawing_location[1] + i < 100):
+                    if 0 <= self.drawing_location[0] + j < 100 and 0 <= self.drawing_location[1] + i < 100:
                         self.memory[self.drawing_location[0] + j, self.drawing_location[1] + i] = 0
                 except IndexError:
                     pass
 
-=======
     def post_info(self, information, target=None):
         """ Post information to the public channel. Will be stored in the game field.
 
@@ -237,7 +236,7 @@ class Agent(GameObject):
         """
 
         # Posts the information to game_field
-        self.game_field.post_to_channels(information, self, target)
+        self.game_field.post_to_channel(information, self, target)
 
     def get_info(self):
         """ Retrieves information from the game field, from both private and public channels, and processes it.
@@ -268,15 +267,14 @@ class Agent(GameObject):
             elif isinstance(info, Target):
                 # Adds the target to the necessary target memory based on its owner
                 # If target belongs to this agent
-                if info.owner == self and not info in self.self_targets_found:
+                if info.owner == self and info not in self.self_targets_found:
                     # TODO After merging, this needs to be changed so that it appends to the proper target list
                     self.self_targets_found.append(info)
                 # If target belongs to another agent
-                elif info.owner != self and not info in self.other_targets_found:
+                elif info.owner != self and info not in self.other_targets_found:
                     self.other_targets_found.append(info)
             # Agent information
             elif isinstance(info, Agent):
                 # Currently only a pass, as it doesn't do anything with information about where an agent is, but is
                 # here in case it is needed in the future
                 pass
->>>>>>> 356aea1d4775c015a17ac2c81f1b228836c3a3b5
