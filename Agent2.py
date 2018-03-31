@@ -83,8 +83,7 @@ class Agent(GameObject):
             "    ++.........++    " \
             "      +++++++++      ".format(self.g_id)
 
-        if game_field.mode != GameModes.COOPERATIVE:
-            self.add_sub_locations(size_x, size_y)
+        self.add_sub_locations(size_x, size_y)
 
     def add_sub_locations(self, dim_x, dim_y):
         for i in range(int(dim_x/10)):
