@@ -35,7 +35,7 @@ class Agent(GameObject):
             The list of targets that the agent has found for itself.
         other_targets_found : list
             The list of targets that the agent has found for other agents.
-        movement_mode : char
+        movement_mode : MoveMode
             The movement mode that the object is in
         memory : np.Array
         """
@@ -110,7 +110,9 @@ class Agent(GameObject):
                     self.destinations.remove(dest)
             if len(self.destinations) != 0:
                 self.destinations.sort(key=lambda x: (self.distance_from_self(x), -self.get_weight(x, self.memory)))
-                self.goal = self.destinations[0]
+                # Only set the goal if the agent is in exploration mode
+                if self.movement_mode == MoveModes.EXPLORE:
+                    self.goal = self.destinations[0]
 
         if self.location[0] < self.goal[0]:
             self.direct = 1
@@ -121,9 +123,17 @@ class Agent(GameObject):
         elif self.location[1] > self.goal[1]:
             self.direct = 0
 
+        # If goal is reached and agent is not running away from other agents
         if self.location[0] == self.goal[0] and self.location[1] == self.goal[1] and not self.run_away:
-            if len(self.destinations) != 0:
-                self.goal = self.destinations.pop(0)
+            # Checks to see which movement mode it is in
+            # Exploration mode
+            if self.movement_mode == MoveModes.EXPLORE:
+                if len(self.destinations) != 0:
+                    self.goal = self.destinations.pop(0)
+            # Pathfinding mode
+            if self.movement_mode == MoveModes.PATHFIND:
+                # Set the new closest target to be the goal
+                self.goal = self.find_closest_target(self.self_targets_found, self.location)
 
         if self.location[0] == self.goal[0] and self.location[1] == self.goal[1] and self.run_away:
             self.run_away = False
@@ -208,14 +218,20 @@ class Agent(GameObject):
             if isinstance(obj, Agent):
                 # is another agent
                 found_agent.append(obj)
+            # is a target that belongs to the agent and belongs to the agent
             if isinstance(obj, Target) and obj.owner == self and not obj.collected:
-                # is a target that belongs to the agent and belongs to the agent
+                # Checks if target was in the self_targets_found list to remove if nescessary
+                if obj in self.self_targets_found:
+                    self.self_targets_found.remove(obj)
+
+                # Collects the target
                 self.targets_collected.append(obj)
                 obj.collect()
-                # print("HAHA got {}".format(len(self.self_targets_found)))
+
                 if len(self.targets_collected) == no_targets_per_agent:
-                    print("WIN!")
+                    print("Agent {} collected all of its targets".format(self.g_id))
                     self.winner = True
+
             elif isinstance(obj, Target) and obj.owner != self and (obj not in self.other_targets_found):
                 # is a target that belongs to another agent
                 self.other_targets_found.append(obj)
@@ -276,9 +292,9 @@ class Agent(GameObject):
             elif isinstance(info, Target):
                 # Adds the target to the necessary target memory based on its owner
                 # If target belongs to this agent
-                if info.owner == self and info not in self.targets_collected:
+                if info.owner == self and info not in self.targets_collected and info not in self.self_targets_found:
                     # TODO After merging, this needs to be changed so that it appends to the proper target list
-                    self.targets_collected.append(info)
+                    self.self_targets_found.append(info)
                 # If target belongs to another agent
                 elif info.owner != self and info not in self.other_targets_found:
                     self.other_targets_found.append(info)
@@ -287,3 +303,81 @@ class Agent(GameObject):
                 # Currently only a pass, as it doesn't do anything with information about where an agent is, but is
                 # here in case it is needed in the future
                 pass
+
+    def evaluate_move_mode(self):
+        """ Evaluates which movement mode the agent should be in by checking how many targets the agent has locations
+        for and how many it has collected.
+
+        Returns
+        -------
+        self.movement_mode : MoveModes
+            The movement mode the agent has been set to.
+        """
+
+        # If the agent doesn't know all target locations, continue exploration mode
+        if len(self.targets_collected) + len(self.self_targets_found) < no_targets_per_agent:
+            self.movement_mode = MoveModes.EXPLORE
+        # If the agent knows where all the remaining targets to be collected are
+        elif len(self.targets_collected) + len(self.self_targets_found) == no_targets_per_agent:
+            self.movement_mode = MoveModes.PATHFIND
+        # If it reaches this state, then an error has occurred when assigning the agent's target memory
+        else:
+            raise RuntimeError("The number of targets in agent {0}'s targets found and collected memory acceeds "
+                               "total targets\ntargets_collected={1}\ntargets_found={2}".
+                               format(self.g_id, len(self.targets_collected), len(self.self_targets_found)))
+
+    def find_closest_target(self, targets, start):
+        """ Finds the closest node to a given starting location in a given list of targets.
+
+        Parameters
+        ----------
+        targets : list
+            The list of targets to calculate the shortest path between.
+        start : list
+            The x, y coordinates of the start position.
+
+        Returns
+        -------
+        best_target: Target
+            The target that is closest to the given location.
+        """
+
+        # The best target so far
+        best_target = None
+        best_distance = inf
+        # Iterate through all targets to determine closest one
+        for target in targets:
+            current_distance = self.calculate_manhattan_distance(self.location, target.location)
+            # If current_distance is smaller than the best_distance, set the current target to be best
+            if current_distance < best_distance:
+                best_distance = current_distance
+                best_target = target
+
+        return best_target
+
+    def move_to_target(self, target):
+        """ Moves the agent towards the given target.
+
+        Parameters
+        ----------
+        target : Target
+            The target the agent is to move towards.
+        """
+
+    @staticmethod
+    def calculate_manhattan_distance(location1, location2):
+        """ Calculates the manhattan distance between the 2 given locations.
+
+        Parameters
+        ----------
+        location1 : list
+            The first location in x, y format.
+        location2 : list
+            The second location in x, y format.
+
+        Returns
+        -------
+        Returns the manhattan distance between the targets.
+        """
+
+        return abs(location1[0] - location2[0]) + abs(location1[1] - location2[1])
