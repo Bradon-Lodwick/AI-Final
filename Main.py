@@ -32,12 +32,11 @@ def play_game(mode):
     terminal.open()
     terminal.set("window: size={}x{}, cellsize=8x8".format(size_x, size_y))
 
-    terminal_read = []
-
+    win_color = colour=['#ffd700','#e0e0e0','#d2b48c']
     winner_list = list()
 
     # Runs the game in a never ending loop, breaks when win occurs
-    while True:
+    while len(winner_list) != no_agents:
 
         ag0 = game_field.agents[0]
 
@@ -46,17 +45,26 @@ def play_game(mode):
 
         # Draws all of the targets
         for tar in game_field.targets:
+            if tar.collected:
+                terminal.color("#505050")
+            else:
+                terminal.color(("#ffffff"))
             tar_location = tar.get_location()
             terminal.printf(tar_location[0], tar_location[1], "{}".format(tar.name))
-
+        '''
         for i in range(size_x):
             for j in range(size_y):
                 if ag0.memory[i][j] == 1:
                     terminal.printf(i,j,".")
+        '''
 
         #-------AGENT STUFF----------
         for agent in game_field.agents:
             # Prints out the agents to the terminal
+            if agent.run_away:
+                terminal.color("#ff0000")
+            else:
+                terminal.color("#ffffff")
             for i in range(21):
                 for j in range(21):
                     if agent.body[j + i * 21] != ' ':
@@ -76,6 +84,10 @@ def play_game(mode):
                 winner_list.append(agent)
 
         for i in range(len(winner_list)):
+            if i < 3:
+                terminal.color(win_color[i])
+            else:
+                terminal.color('#c0c0c0')
             terminal.printf(0, i * 2, "Winner: {}".format(winner_list[i].g_id))
 
         #-----BREAK TO WIN SEQUENCE--
@@ -86,7 +98,7 @@ def play_game(mode):
         terminal.clear()
 
     #-----WIN SEQUENCE
-    if terminal_read() != terminal.TK_CLOSE:
+    if terminal.read() != terminal.TK_CLOSE:
         terminal.close()
 
 

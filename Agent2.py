@@ -83,12 +83,14 @@ class Agent(GameObject):
             "    ++.........++    " \
             "      +++++++++      ".format(self.g_id)
 
-        self.add_sub_locations()
+        if game_field.mode != GameModes.COOPERATIVE:
+            self.add_sub_locations(size_x, size_y)
 
-    def add_sub_locations(self):
-        for i in range(int(size_x/10)):
-            for j in range(int(size_y/10)):
+    def add_sub_locations(self, dim_x, dim_y):
+        for i in range(int(dim_x/10)):
+            for j in range(int(dim_y/10)):
                 self.destinations.append([i*10+5, j*10+5])
+        self.destinations.sort(key=lambda x: (self.distance_from_self(x)))
 
     def distance_from_self(self, coord):
         distance = abs(coord[0] - self.location[0]) + abs(coord[1] - self.location[1])
@@ -96,21 +98,22 @@ class Agent(GameObject):
 
     def step(self):
         # TODO Collect steps when running away
-        self.get_info()
-        in_area = self.scan_area()
+       # self.get_info()
+        in_area = self.scan_area() # all the surrounding agents
 
-        if len(in_area) > 0 and not self.run_away:
+        if len(in_area) > 0 and not self.run_away: # if there are agents in the area run away to escape zone
             self.run_away = True
             self.goal = self.escape_zone(in_area)
 
-        elif not self.run_away and len(self.destinations) != 0:
-            for dest in self.destinations:
-                if self.get_weight(dest, self.memory) == 0:
+        elif not self.run_away and self.destinations: # If you aren't currently running away and have places to go
+            for dest in self.destinations: # if any destination's area has been explored remove it from the list
+                if self.get_weight(dest) == 0:
                     self.destinations.remove(dest)
-            if len(self.destinations) != 0:
-                self.destinations.sort(key=lambda x: (self.distance_from_self(x), -self.get_weight(x, self.memory)))
-                self.goal = self.destinations[0]
+            if self.destinations: # Destinations will be sorted by distant to self and weight(memory unexplored)
+                self.destinations.sort(key=lambda x: (self.distance_from_self(x), -self.get_weight(x)))
+                self.goal = self.destinations[0] # The first elelment of the destinations is chosen
 
+        # Updates the direction to move towards goal
         if self.location[0] < self.goal[0]:
             self.direct = 1
         elif self.location[0] > self.goal[0]:
@@ -120,17 +123,23 @@ class Agent(GameObject):
         elif self.location[1] > self.goal[1]:
             self.direct = 0
 
-        if self.location[0] == self.goal[0] and self.location[1] == self.goal[1] and not self.run_away:
-            if len(self.destinations) != 0:
-                self.goal = self.destinations.pop(0)
+        # TODO see if this is actually necessary try deleting it and see what happens
+        # if you are at your goal but not running away
+        if self.location == self.goal and not self.run_away:
+                if self.destinations:
+                    self.goal = self.destinations.pop(0) # The next goal is chosen
 
-        if self.location[0] == self.goal[0] and self.location[1] == self.goal[1] and self.run_away:
-            self.run_away = False
+        # if the goal is reached while running away, stop running away
+        if self.location == self.goal and self.run_away:
+                self.run_away = False
 
-        if self.check_move(self.direct) and (len(self.destinations) != 0 or self.run_away):
+        # if the move is a good move and you have somewhere to go, move
+        if self.check_move(self.direct) and (self.destinations or self.run_away):
             self.move(self.direct)
 
-        elif len(self.destinations) != 0:
+        # TODO this also may not be needed... Since it chooses the destination at the beginning
+        # if you cannot reach your destination because it is out of bounds, choose a new one
+        elif self.destinations:
             self.goal = self.destinations[0]
 
         # Checks which game mode it is in to determine how it should communicate
@@ -145,7 +154,6 @@ class Agent(GameObject):
             # Shares memory to public channel
             self.post_info(self.memory)
 
-
     def escape_zone(self, enemies, factor=1):
         # TODO add jitter
         num_e = len(enemies)
@@ -153,8 +161,9 @@ class Agent(GameObject):
         for e in enemies:
             avg_x += int(e.location[0]/num_e)
             avg_y += int(e.location[1]/num_e)
-
-        escape_destination = [factor*(2*self.location[0] - avg_x), factor*(2*self.location[1] - avg_y)]
+        jitt_x = random.randint(0,1)
+        jitt_y = random.randint(0,1)
+        escape_destination = [factor*(2*self.location[0] - avg_x) + jitt_x, factor*(2*self.location[1] - avg_y) + jitt_y]
         return escape_destination
 
     def move(self, direction):
@@ -170,9 +179,9 @@ class Agent(GameObject):
 
     def check_move(self, direction):
         # TODO return approved coordinates
-        if direction == 1 and self.location[0] + speed < 100:
+        if direction == 1 and self.location[0] + speed < size_x:
             return True
-        elif direction == 2 and self.location[1] + speed < 100:
+        elif direction == 2 and self.location[1] + speed < size_y:
             return True
         elif direction == 3 and self.location[0] - speed > 0:
             return True
@@ -181,13 +190,12 @@ class Agent(GameObject):
         else:
             return False
 
-    @staticmethod
-    def get_weight(coord, mat):
+    def get_weight(self, coord):
         weight = 0
         for i in range(coord[0]-5, coord[0]+5):
             for j in range(coord[1]-5, coord[1]+5):
-                if 0 <= j < 100 and 0 <= i < 100:
-                    weight += mat[i][j]
+                if 0 <= j < size_x and 0 <= i < size_y:
+                    weight += self.memory[i][j]
         return weight
 
     def scan_area(self):
@@ -218,7 +226,7 @@ class Agent(GameObject):
         for i in range(21):
             for j in range(21):
                 try:
-                    if 0 <= self.drawing_location[0] + j < 100 and 0 <= self.drawing_location[1] + i < 100:
+                    if 0 <= self.drawing_location[0] + j < size_x and 0 <= self.drawing_location[1] + i < size_y:
                         if self.body[j + i * 21] != ' ':
                             self.memory[self.drawing_location[0] + j, self.drawing_location[1] + i] = 0
                 except IndexError:
