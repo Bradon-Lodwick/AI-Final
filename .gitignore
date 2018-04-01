@@ -2,4 +2,4 @@
 .idea*
 *pycache*
 rand_agent.py
-.gitignore
+test_data
