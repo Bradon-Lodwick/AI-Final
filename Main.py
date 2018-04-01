@@ -13,6 +13,7 @@ __version__ = "0.1"
 __status__ = "Prototype"
 
 import time
+import threading
 from GameField import GameField
 from bearlibterminal import terminal
 from Settings import *
@@ -55,25 +56,22 @@ def play_game(mode):
                     terminal.printf(i,j,".")
 
         #-------AGENT STUFF----------
+        # The agent threads list
+        threads = []
+        # Creates all of the agent threads
         for agent in game_field.agents:
-            # Prints out the agents to the terminal
-            for i in range(21):
-                for j in range(21):
-                    if agent.body[j + i * 21] != ' ':
-                        if (agent.body[j + i * 21] != '.'):
-                            terminal.printf(agent.drawing_location[0] + j, agent.drawing_location[1] + i, agent.body[j + i * 21])
-
-            agent.memorize()
-            try:
-                terminal.printf(agent.goal[0]-1, agent.goal[1], "({})".format(agent.g_id))
-            except:
-                pass
-
-            # Steps current agent
-            agent.step()
+            t = threading.Thread(target=agent_threading_function, args=(agent,))
+            threads.append(t)
             #---IS WINNER?-------
             if agent.winner and agent not in winner_list:
                 winner_list.append(agent)
+
+        # Starts all of the threads
+        for t in threads:
+            t.start()
+        # Waits for all the agent threads to finish
+        for t in threads:
+            t.join()
 
         for i in range(len(winner_list)):
             terminal.printf(0, i * 2, "Winner: {}".format(winner_list[i].g_id))
@@ -88,6 +86,24 @@ def play_game(mode):
     #-----WIN SEQUENCE
     if terminal_read() != terminal.TK_CLOSE:
         terminal.close()
+
+
+def agent_threading_function(agent):
+    # Prints out the agents to the terminal
+    for i in range(21):
+        for j in range(21):
+            if agent.body[j + i * 21] != ' ':
+                if (agent.body[j + i * 21] != '.'):
+                    terminal.printf(agent.drawing_location[0] + j, agent.drawing_location[1] + i, agent.body[j + i * 21])
+
+    agent.memorize()
+    try:
+        terminal.printf(agent.goal[0]-1, agent.goal[1], "({})".format(agent.g_id))
+    except:
+        pass
+
+    # Steps current agent
+    agent.step()
 
 
 play_game(GameModes.COOPERATIVE)
