@@ -17,6 +17,7 @@ from Target import Target
 from Settings import *
 from math import inf
 import numpy as np
+import random
 
 
 class Agent(GameObject):
@@ -299,14 +300,15 @@ class Agent(GameObject):
         escape_destination : list
             The (x, y) co-ordinate list of the escape goal for the agent.
         """
-        # TODO add jitter
         num_e = len(agents_to_avoid)
         avg_x, avg_y = 0, 0
         for e in agents_to_avoid:
-            avg_x += int(e.location[0]/num_e)
-            avg_y += int(e.location[1]/num_e)
-
-        escape_destination = [factor*(2*self.location[0] - avg_x), factor*(2*self.location[1] - avg_y)]
+            avg_x += int(e.location[0] / num_e)
+            avg_y += int(e.location[1] / num_e)
+        jitt_x = random.randint(0, 1)
+        jitt_y = random.randint(0, 1)
+        escape_destination = [factor * (2 * self.location[0] - avg_x) + jitt_x,
+                              factor * (2 * self.location[1] - avg_y) + jitt_y]
         return escape_destination
 
     def move(self, direction):
