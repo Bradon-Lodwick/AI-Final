@@ -231,3 +231,26 @@ class GameField:
                 return False
         # If the loop reaches here, then all agents must know where their targets are so return True
         return True
+
+    def get_agent_happinesses(self, run_no):
+        """ Gets all of the agent's happiness information.
+
+        Parameters
+        ----------
+        run_no : int
+            The current run value to be sent to the dictionary.
+
+        Returns
+        -------
+        dictionary : dict
+            The dictionary of all the agent happinesses.
+        """
+
+        happiness_list = list()
+        # Loop through all the agents
+        for agent in self.agents:
+            # Get happiness variables from agent and append to the list
+            happiness_list.append(agent.calculate_happiness_variables())
+        return happiness_list
+
+
