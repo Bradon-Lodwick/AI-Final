@@ -126,54 +126,61 @@ class Agent(GameObject):
             print("Agent {} is in {} mode".format(self.g_id, self.movement_mode))
 
     def step(self):
-        # TODO Collect steps when running away
+        # Get info from other agents
         self.get_info()
-        in_area = self.scan_area()
 
-        if len(in_area) > 0 and not self.run_away:
+        # Scan area, collecting targets and finding agents in area
+        agents_in_area = self.scan_area()
+
+        # Checks to see if the agent needs to run away to avoid a collision
+        if len(agents_in_area) > 0 and not self.run_away:
             self.run_away = True
-            self.goal = self.escape_zone(in_area)
+            self.goal = self.escape_zone(agents_in_area)
 
-        elif not self.run_away and len(self.destinations) != 0:
+        # Check which movement mode the agent is in
+        # Exploration mode
+        elif not self.run_away and len(self.destinations) != 0 and self.movement_mode == MoveModes.EXPLORE:
+            # For each destination in the destinations list
             for dest in self.destinations:
                 if self.get_weight(dest, self.memory) == 0:
                     self.destinations.remove(dest)
             if len(self.destinations) != 0:
+                # Sort the destination list by the weight of each location
                 self.destinations.sort(key=lambda x: (self.distance_from_self(x), -self.get_weight(x, self.memory)))
-                # Only set the goal if the agent is in exploration mode
-                if self.movement_mode == MoveModes.EXPLORE:
-                    self.goal = self.destinations[0]
+                # Set the goal to the destination that was found
+                self.goal = self.destinations[0]
+        # Path finding mode
+        elif not self.run_away and self.movement_mode == MoveModes.PATHFIND:
+            self.goal = self.find_closest_target(self.self_targets_found, self.location).location
 
+        # Checks which direction the agent should move in, setting it to self.direct
+        # If needs to move East
         if self.location[0] < self.goal[0]:
-            self.direct = 1
+            self.direct = Direction.E
+        # If needs to move West
         elif self.location[0] > self.goal[0]:
-            self.direct = 3
+            self.direct = Direction.W
+        # If needs to move South
         elif self.location[1] < self.goal[1]:
-            self.direct = 2
+            self.direct = Direction.S
+        # If needs to move North
         elif self.location[1] > self.goal[1]:
-            self.direct = 0
+            self.direct = Direction.N
 
-        # If goal is reached and agent is not running away from other agents
-        if self.location[0] == self.goal[0] and self.location[1] == self.goal[1] and not self.run_away:
-            # Checks to see which movement mode it is in
-            # Exploration mode
-            if self.movement_mode == MoveModes.EXPLORE:
-                if len(self.destinations) != 0:
-                    self.goal = self.destinations.pop(0)
-            # Pathfinding mode
-            if self.movement_mode == MoveModes.PATHFIND:
-                # Set the new closest target to be the goal
-                self.goal = self.find_closest_target(self.self_targets_found, self.location).location
+        # If the goal was reached by the agent in exploration mode, it needs to be removed from the destination list
+        if self.location == self.goal and self.movement_mode == MoveModes.EXPLORE and self.run_away == False:
+            # Pop the location from the destinations list
+            self.destinations.remove(self.goal)
 
-        if self.location[0] == self.goal[0] and self.location[1] == self.goal[1] and self.run_away:
+        # If the goal was reached by the agent and was in run_away mode, make run_away False
+        if self.location == self.goal and self.run_away:
             self.run_away = False
 
-        if self.check_move(self.direct) and (len(self.destinations) != 0 or self.run_away):
+        # Checks to see if the agent can move, moving it if it can
+        if self.check_move(self.direct):
             self.move(self.direct)
 
-        elif len(self.destinations) != 0 and self.movement_mode == MoveModes.EXPLORE:
-            self.goal = self.destinations[0]
-
+        # Communication
         # Checks which game mode it is in to determine how it should communicate
         if self.game_field.mode == GameModes.COMPETITIVE:
             # Currently no communication is done in competitive, but eventually trading targets based on happiness
@@ -209,25 +216,25 @@ class Agent(GameObject):
         return escape_destination
 
     def move(self, direction):
-        if direction == 0:
+        if direction == Direction.N:
             self.location[1] -= speed
-        elif direction == 2:
+        elif direction == Direction.S:
             self.location[1] += speed
-        elif direction == 1:
+        elif direction == Direction.E:
             self.location[0] += speed
-        elif direction == 3:
+        elif direction == Direction.W:
             self.location[0] -= speed
         self.drawing_location = [self.location[0]-10, self.location[1]-10]
 
     def check_move(self, direction):
         # TODO return approved coordinates
-        if direction == 1 and self.location[0] + speed < 100:
+        if direction == Direction.E and self.location[0] + speed < 100:
             return True
-        elif direction == 2 and self.location[1] + speed < 100:
+        elif direction == Direction.S and self.location[1] + speed < 100:
             return True
-        elif direction == 3 and self.location[0] - speed > 0:
+        elif direction == Direction.W and self.location[0] - speed > 0:
             return True
-        elif direction == 0 and self.location[1] - speed > 0:
+        elif direction == Direction.N and self.location[1] - speed > 0:
             return True
         else:
             return False
