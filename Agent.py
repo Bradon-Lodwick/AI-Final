@@ -211,6 +211,9 @@ class Agent(GameObject):
         # Scan area, collecting targets and finding agents in area
         agents_in_area = self.scan_area()
 
+        if self.all_targets_collected:
+            self.goal = self.location
+
         # Checks to see if the agent needs to run away to avoid a collision
         if len(agents_in_area) > 0 and not self.run_away:
             self.run_away = True
