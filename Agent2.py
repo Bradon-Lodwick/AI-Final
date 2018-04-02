@@ -95,6 +95,28 @@ class Agent(GameObject):
         distance = abs(coord[0] - self.location[0]) + abs(coord[1] - self.location[1])
         return distance
 
+    def check_needed_movement_mode(self):
+        """ Re-evaluates which movement mode the agent should be in based on how many targets it has collected and
+        knows the location of.
+        """
+
+        # If all targets have been collected
+        if len(self.targets_collected) == no_targets_per_agent:
+            # TODO add implementation, this would be a good spot to move the winner declarations
+            pass
+        # If all targets that are left to be collected are known, change to path finding mode
+        elif len(self.self_targets_found) + len(self.targets_collected) == no_targets_per_agent:
+            self.movement_mode == MoveModes.PATHFIND
+        # If all targets that are left are not known, change to exploration mode
+        elif len(self.self_targets_found) + len(self.targets_collected) < no_targets_per_agent:
+            self.movement_mode == MoveModes.EXPLORE
+        # If all targets known + all targets collected > no_targets_per_agent, and error has occurred somewhere
+        else:
+            raise RuntimeWarning('Agent {} currently thinks it has collected/found locations for more targets than '
+                                 'possible\nfound={}, collected={}, no_targets_per_agent={}'
+                                 .format(self.g_id, len(self.self_targets_found), len(self.targets_collected),
+                                         no_targets_per_agent))
+
     def step(self):
         # TODO Collect steps when running away
         self.get_info()
@@ -153,6 +175,9 @@ class Agent(GameObject):
             for target in self.other_targets_found:
                 self.post_info(target, target=target.owner)
                 self.other_targets_found.remove(target)
+
+        # Re-evaluate which movement mode the agent should be in for the next step cycle
+        self.check_needed_movement_mode()
 
     def escape_zone(self, enemies, factor=1):
         # TODO add jitter
