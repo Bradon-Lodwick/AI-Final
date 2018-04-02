@@ -133,14 +133,21 @@ def print_agent(agent):
     agent : Agent
         The agent to print to the terminal.
     """
+
+    # Chooses colour based on agent state, e.g. running away
+    if agent.run_away:
+        colour = "#ff0000"
+    else:
+        colour = "#ffffff"
+
     for i in range(21):
         for j in range(21):
             if agent.body[j + i * 21] != ' ':
                 if agent.body[j + i * 21] != '.':
                     terminal.printf(
-                        agent.drawing_location[0] + j, agent.drawing_location[1] + i, agent.body[j + i * 21])
+                        agent.drawing_location[0] + j, agent.drawing_location[1] + i, "[color={}]{}[/color]".format(colour, agent.body[j + i * 21]))
     try:
-        terminal.printf(agent.goal[0]-1, agent.goal[1], "({})".format(agent.g_id))
+        terminal.printf(agent.goal[0]-1, agent.goal[1], "[color={}]({})[color]".format(colour, agent.g_id))
     # TODO this should be changed to a less broad exception class, what exception are we expecting this to cause?
     except Exception:
         pass
