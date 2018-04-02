@@ -10,6 +10,8 @@ no_agents = 5
 # The number of targets for each agent
 no_targets_per_agent = 5
 
+no_iterations = 1
+
 # TERMINAL SETTINGS
 # The refresh rate of the terminal
 refresh = 0
@@ -33,8 +35,8 @@ class GameModes(Enum):
     """ Modes that the simulation can be in for game play.
     """
     COMPETITIVE = 1
-    COMPASSIONATE = 2
-    COOPERATIVE = 3
+    COOPERATIVE = 2
+    COMPASSIONATE = 3
 
 
 class Direction(Enum):

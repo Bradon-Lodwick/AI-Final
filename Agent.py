@@ -558,7 +558,7 @@ class Agent(GameObject):
         happiness_dict = dict()
 
         # Game mode
-        happiness_dict['mode'] = self.game_field.mode
+        happiness_dict['mode'] = self.game_field.mode.value
 
         # Agent number
         happiness_dict['agent'] = self.g_id
@@ -586,6 +586,11 @@ class Agent(GameObject):
         happiness_dict['std'] = np.std(self.happiness_list)
 
         # Calculate the competitiveness of the agent
-        happiness_dict['competitiveness'] = (happiness_dict['happiness'] - happiness_dict['min']) / (happiness_dict['max'] - happiness_dict['min'])
+        try:
+            happiness_dict['competitiveness'] = (happiness_dict['happiness'] - happiness_dict['min']) / \
+                                                (happiness_dict['max'] - happiness_dict['min'])
+        # Set to 0 if divide by 0, as that means it was not competitive at all
+        except ZeroDivisionError:
+            happiness_dict['competitiveness'] = 0
 
         return happiness_dict
