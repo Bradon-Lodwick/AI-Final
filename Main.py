@@ -65,12 +65,19 @@ def play_game(mode):
 
         # Draws all of the targets on the terminal
         for tar in game_field.targets:
+
+            if tar.collected:
+                colour = "#a0a0a0"
+            elif tar.owner.movement_mode == MoveModes.PATHFIND:
+                colour = "#00ff00"
+            else:
+                colour = "#ffffff"
             tar_location = tar.get_location()
-            terminal.printf(tar_location[0], tar_location[1], "{}".format(tar.name))
+            terminal.printf(tar_location[0], tar_location[1], "[color={}]{}[/color]".format(colour, tar.name))
         for i in range(size_x):
             for j in range(size_y):
                 if ag0.memory[i][j] == 1:
-                    terminal.printf(i, j, ".")
+                    terminal.printf(i, j, "[color=white].[/color]")
 
         # Starts the threading for the agents
         # The agent threads list
@@ -135,8 +142,11 @@ def print_agent(agent):
     """
 
     # Chooses colour based on agent state, e.g. running away
+
     if agent.run_away:
         colour = "#ff0000"
+    elif agent.movement_mode == MoveModes.PATHFIND:
+        colour = "#00ff00"
     else:
         colour = "#ffffff"
 
