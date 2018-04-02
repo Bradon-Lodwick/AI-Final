@@ -39,7 +39,7 @@ def play_game(mode):
 
     # Runs the game in a never ending loop, breaks when win occurs
     while True:
-
+        terminal.color("#ffffff")
         ag0 = game_field.agents[0]
 
        # for dest in ag0.destinations:
@@ -90,15 +90,18 @@ def play_game(mode):
 
 def agent_threading_function(agent):
     # Prints out the agents to the terminal
+    color = "white"
+    if agent.run_away:
+        color = "red"
     for i in range(21):
         for j in range(21):
             if agent.body[j + i * 21] != ' ':
                 if (agent.body[j + i * 21] != '.'):
-                    terminal.printf(agent.drawing_location[0] + j, agent.drawing_location[1] + i, agent.body[j + i * 21])
+                    terminal.printf(agent.drawing_location[0] + j, agent.drawing_location[1] + i, "[color={}]{}[/color]".format(color, agent.body[j + i * 21]))
 
     agent.memorize()
     try:
-        terminal.printf(agent.goal[0]-1, agent.goal[1], "({})".format(agent.g_id))
+        terminal.printf(agent.goal[0]-1, agent.goal[1], "[color={}]({})[/color]".format(color, agent.g_id))
     except:
         pass
 
