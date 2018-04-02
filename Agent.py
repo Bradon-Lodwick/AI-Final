@@ -188,6 +188,19 @@ class Agent(GameObject):
             # Print out the movement mode of the agent
             print("Agent {} is in {} mode".format(self.g_id, self.movement_mode))
 
+    def fix_goal(self, goal):
+        new_goal = goal
+        if goal[0] < 0:
+            new_goal[0] = 0
+        elif goal[0] >= size_x:
+            new_goal[0] = size_x - 1
+        if goal[1] < 0:
+            new_goal[1] = 0
+        elif goal[1] >= size_y:
+            new_goal[1] = size_y - 1
+
+        return new_goal
+
     def step(self):
         """ Runs the agent through 1 movement step. Takes into account other agent information, movement mode, etc.
         """
@@ -220,6 +233,8 @@ class Agent(GameObject):
 
         # Checks which direction the agent should move in, setting it to self.direct
         # If needs to move East
+        self.goal = self.fix_goal(self.goal)
+
         if self.location[0] < self.goal[0]:
             self.direct = Direction.E
         # If needs to move West
@@ -336,9 +351,9 @@ class Agent(GameObject):
             return True
         elif direction == Direction.S and self.location[1] + speed < 100:
             return True
-        elif direction == Direction.W and self.location[0] - speed > 0:
+        elif direction == Direction.W and self.location[0] - speed >= 0:
             return True
-        elif direction == Direction.N and self.location[1] - speed > 0:
+        elif direction == Direction.N and self.location[1] - speed >= 0:
             return True
         else:
             return False
