@@ -106,10 +106,10 @@ class Agent(GameObject):
             pass
         # If all targets that are left to be collected are known, change to path finding mode
         elif len(self.self_targets_found) + len(self.targets_collected) == no_targets_per_agent:
-            self.movement_mode == MoveModes.PATHFIND
+            self.movement_mode = MoveModes.PATHFIND
         # If all targets that are left are not known, change to exploration mode
         elif len(self.self_targets_found) + len(self.targets_collected) < no_targets_per_agent:
-            self.movement_mode == MoveModes.EXPLORE
+            self.movement_mode = MoveModes.EXPLORE
         # If all targets known + all targets collected > no_targets_per_agent, and error has occurred somewhere
         else:
             raise RuntimeWarning('Agent {} currently thinks it has collected/found locations for more targets than '
@@ -372,7 +372,7 @@ class Agent(GameObject):
         best_distance = inf
         # Iterate through all targets to determine closest one
         for target in targets:
-            current_distance = self.calculate_manhattan_distance(self.location, target.location)
+            current_distance = self.calculate_manhattan_distance(start, target.location)
             # If current_distance is smaller than the best_distance, set the current target to be best
             if current_distance < best_distance:
                 best_distance = current_distance
