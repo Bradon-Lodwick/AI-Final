@@ -155,7 +155,7 @@ class Agent(GameObject):
             # Pathfinding mode
             if self.movement_mode == MoveModes.PATHFIND:
                 # Set the new closest target to be the goal
-                self.goal = self.find_closest_target(self.self_targets_found, self.location)
+                self.goal = self.find_closest_target(self.self_targets_found, self.location).location
 
         if self.location[0] == self.goal[0] and self.location[1] == self.goal[1] and self.run_away:
             self.run_away = False
@@ -256,6 +256,9 @@ class Agent(GameObject):
                 if len(self.targets_collected) == no_targets_per_agent:
                     print("Agent {} collected all of its targets".format(self.g_id))
                     self.winner = True
+                    # Reset the movement mode to explore so that it doesn't try to path find when it has no targets to
+                    # find
+                    self.movement_mode = MoveModes.EXPLORE
 
             elif isinstance(obj, Target) and obj.owner != self and (obj not in self.other_targets_found):
                 # is a target that belongs to another agent
