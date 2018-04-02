@@ -220,3 +220,19 @@ class GameField:
                 else:
                     win_condition_met = False
         return win_condition_met
+
+    def check_all_agents_ready(self):
+        """ Checks if all of the agents have their target locations either known or collected.
+
+        Returns
+        -------
+        bool
+            Whether all the agents know their target locations.
+        """
+        # Loop through all the agents
+        for agent in self.agents:
+            # If any of the agents don't know all their target locations, return False
+            if len(agent.targets_collected) + len(agent.self_targets_found) < no_targets_per_agent:
+                return False
+        # If the loop reaches here, then all agents must know where their targets are so return True
+        return True

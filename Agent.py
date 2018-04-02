@@ -161,9 +161,18 @@ class Agent(GameObject):
         # If the agent has found all of its targets
         if self.all_targets_collected:
             self.movement_mode == MoveModes.STOP
-        # If all targets that are left to be collected are known, change to path finding mode
+        # If all targets that are left to be collected are known
         elif len(self.self_targets_found) + len(self.targets_collected) == no_targets_per_agent:
-            self.movement_mode = MoveModes.PATHFIND
+            # Changes based on which mode the game is in
+            # If in competitive or compassionate, automatically goes to path finding mode
+            if self.game_field.mode == GameModes.COMPETITIVE or self.game_field.mode == GameModes.COMPASSIONATE:
+                self.movement_mode = MoveModes.PATHFIND
+            # If in cooperative, only goes to path finding when all of the agents have their target locations
+            # TODO change true to function checking all agent info
+            elif self.game_field.mode == GameModes.COOPERATIVE and self.game_field.check_all_agents_ready():
+                self.movement_mode = MoveModes.PATHFIND
+            else:
+                self.movement_mode = MoveModes.EXPLORE
         # If all targets that are left are not known, change to exploration mode
         elif len(self.self_targets_found) + len(self.targets_collected) < no_targets_per_agent:
             self.movement_mode = MoveModes.EXPLORE

@@ -86,6 +86,21 @@ def play_game(mode):
         # Check for the win condition
         game_complete = game_field.check_win_condition()
 
+    # Output game winner information to the terminal based on game mode
+    if game_field.mode == GameModes.COMPETITIVE:
+        # Still loop through all agents in case there was a tie
+        for i in range(len(finished_agents)):
+            terminal.printf(0, i * 2, "Agent {} won!".format(finished_agents[i]))
+    elif game_field.mode == GameModes.COMPASSIONATE:
+        # Still loop through all agents in case there was a tie
+        for i in range(len(finished_agents)):
+            terminal.printf(0, i * 2, "Agent {} found all its targets!".format(finished_agents[i]))
+    elif game_field.mode == GameModes.COOPERATIVE:
+        terminal.printf(0, 0, "All agents found their targets!")
+
+    # Refresh the terminal
+    terminal.refresh()
+
     # Stops terminal from closing when game is complete
     if terminal.read() != terminal.TK_CLOSE:
         terminal.close()
@@ -128,4 +143,4 @@ def agent_threading_function(agent):
     print_agent(agent)
 
 
-play_game(GameModes.COMPETITIVE)
+play_game(GameModes.COMPASSIONATE)
