@@ -206,6 +206,14 @@ class Agent(GameObject):
             avg_y += int(e.location[1]/num_e)
 
         escape_destination = [factor*(2*self.location[0] - avg_x), factor*(2*self.location[1] - avg_y)]
+        if escape_destination[0] > (size_x - 1):
+            escape_destination[0] = size_x - 1
+        if escape_destination[0] < 0:
+            escape_destination[0] = 0
+        if escape_destination[1] > (size_y - 1):
+            escape_destination[1] = size_y - 1
+        if escape_destination[1] < 1:
+            escape_destination[1] = 1
         return escape_destination
 
     def move(self, direction):
