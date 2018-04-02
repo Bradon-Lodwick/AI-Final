@@ -43,7 +43,6 @@ def play_game(mode):
     game_complete = False
 
     # Runs the game until game_complete is set to True
-    # TODO change game_complete to True through a check that should be added in GameField
     while not game_complete:
         # The first agent in the game_field's list, to be used when showing memory values on the terminal
 
@@ -84,6 +83,13 @@ def play_game(mode):
         terminal.refresh()
         terminal.clear()
 
+        # Check for the win condition
+        game_complete = game_field.check_win_condition()
+
+    # Stops terminal from closing when game is complete
+    if terminal.read() != terminal.TK_CLOSE:
+        terminal.close()
+
 
 def print_agent(agent):
     """ Prints the given agent on the terminal window.
@@ -122,4 +128,4 @@ def agent_threading_function(agent):
     print_agent(agent)
 
 
-play_game(GameModes.COOPERATIVE)
+play_game(GameModes.COMPETITIVE)
