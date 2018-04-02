@@ -134,7 +134,7 @@ class Agent(GameObject):
             self.run_away = True
             self.goal = self.escape_zone(in_area)
 
-        elif not self.run_away and len(self.destinations) != 0:
+        elif not self.run_away and len(self.destinations) != 0 and self.movement_mode == MoveModes.EXPLORE:
             for dest in self.destinations:
                 if self.get_weight(dest, self.memory) == 0:
                     self.destinations.remove(dest)
