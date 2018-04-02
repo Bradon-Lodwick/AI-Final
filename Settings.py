@@ -26,6 +26,7 @@ class MoveModes(Enum):
     """
     EXPLORE = 1
     PATHFIND = 2
+    STOP = 3
 
 
 class GameModes(Enum):

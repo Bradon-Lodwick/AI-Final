@@ -13,7 +13,7 @@ __version__ = "0.1"
 __status__ = "Prototype"
 
 from Settings import *
-from Agent2 import Agent
+from Agent import Agent
 from Target import Target
 import numpy as np
 import random
@@ -39,7 +39,7 @@ class GameField:
             The information that has been posted to the private channels
             The information will be in format (agent who sent, agent who is target, information)
         """
-    def __init__(self, no_agents, no_targets_per_agent, mode):
+    def __init__(self, agents_to_create, targets_per_agent_to_create, mode):
         """ TODO still have to finish up this as well
         """
         # Creates the agent and target lists
@@ -47,13 +47,13 @@ class GameField:
         self.targets = list()
 
         # Loops to create the necessary number of agents
-        for a_id in range(0, no_agents):
+        for a_id in range(0, agents_to_create):
             location = self.generate_unique_location()
             new_agent = Agent(self, a_id, location)
             self.agents.append(new_agent)
 
             # Adds all the targets for the newly generated agent
-            for t_id in range(0, no_targets_per_agent):
+            for t_id in range(0, targets_per_agent_to_create):
                 location = self.generate_location()
                 new_target = Target(self, t_id, location, new_agent)
                 self.targets.append(new_target)

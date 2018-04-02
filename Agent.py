@@ -17,7 +17,6 @@ from Target import Target
 from Settings import *
 from math import inf
 import numpy as np
-import random
 
 
 class Agent(GameObject):
@@ -25,35 +24,82 @@ class Agent(GameObject):
 
         Attributes
         ----------
-        game_field : GameField
-            The game field that the object is on.
+        all_targets_collected : bool
+            Holds whether all of the agent's targets have been collected by itself. Collected targets are stored in
+            self.targets_collected
+        body : str
+            The shape of the agent to be drawn in the terminal.
+        destinations : list
+            The list of destinations for the agent to go to for exploration mode.
+        direct : Direction
+            The direction that the agent would like to move in.
+        drawing_location : list
+            The location to draw the agent on the terminal window at.
         g_id : int
             The id of the game object.
+        game_field : GameField
+            The game field that the object is on.
+        goal : list
+            The location the agent would like to move into
         location : list
             The location of the object on the game field.
-        self_targets_found : list
-            The list of targets that the agent has found for itself.
-        other_targets_found : list
-            The list of targets that the agent has found for other agents.
-        movement_mode : char
-            The movement mode that the object is in
         memory : np.Array
+            The memory of the locations that the agent has visited on the game field. 0's in the list mean the agent has
+            gone to the location, 1 means it has not.
+        movement_mode : MoveMode
+            The movement mode that the object is in.
+        other_targets_found : list
+            The list of targets that the agent does not own and knows the location of.
+        self_targets_found : list
+            The list of targets that the agent owns and knows the location of.
+        targets_collected : list
+            The list of targets that the agent has collected.
         """
 
     def __init__(self, game_field, g_id, location):
-        """ TODO add a list for targets known but not collected
-            TODO add a value to store previous movement direction to allow collision avoidance to force right turns
+        """ Initializes the agent object.
+
+        Parameters
+        ----------
+        game_field : GameField
+            The game field that the agent is to be created on.
+        g_id : int
+            The id of the agent.
+        location : list
+            The location the agent will start on, passed in (x, y) format.
         """
         GameObject.__init__(self, game_field, g_id, location)
         # Creates the empty lists for the targets the agent has found
+        self.targets_collected = list()
         self.self_targets_found = list()
         self.other_targets_found = list()
+
+        # Sets up the destinations sub matrices
+        self.destinations = []
+        self.add_sub_locations()
+        self.add_sub_locations()
+
         # Initializes the agent's movement to the exploration mode
         self.movement_mode = MoveModes.EXPLORE
+
+        # Sets the direction the agent is to go in to None, as at initialization it doesn't have a goal set
+        self.direct = None
+
         # Initializes the memory of the map that the agent has seen
         self.memory = np.ones(shape=(size_x, size_y))
-        self.drawing_location = [self.location[0] - 11, self.location[1] - 11]
-        self.winner = False
+
+        # Sets to False as not all targets should be collected on initialization
+        self.all_targets_collected = False
+
+        # Boolean value for whether the agent is running away from another agent
+        self.run_away = False
+
+        # (x, y) list of the goal location for the agent to go to.
+        self.goal = []
+
+        # The location to use for drawing on the terminal
+        self.drawing_location = [self.location[0] - 10, self.location[1] - 10]
+        # The shape of the agent's body to draw onto the terminal window
         self.body = \
             "      +++++++++      " \
             "    ++.........++    " \
@@ -77,59 +123,120 @@ class Agent(GameObject):
             "    ++.........++    " \
             "      +++++++++      ".format(self.g_id)
 
+        # Output to console that the agent was created successfully
+        print("Agent {} created at location {}".format(self.g_id, self.location))
+
+    def add_sub_locations(self):
+        """ Determines the location of sub matrices to be used when the agent is in exploration mode. Adds the locations
+        into the destinations list.
+        """
+        for i in range(int(size_x/10)):
+            for j in range(int(size_y/10)):
+                self.destinations.append([i*10+5, j*10+5])
+
+    def distance_from_self(self, coord):
+        """ Calculates the manhattan distance between the agent and the given co-ordinate.
+
+        Parameters
+        ----------
+        coord : list
+            The co-ordinate of the other location in (x, y) format.
+
+        Returns
+        -------
+        distance : int
+            The distance from the agent to the given target
+        """
+        distance = abs(coord[0] - self.location[0]) + abs(coord[1] - self.location[1])
+        return distance
+
+    def check_needed_movement_mode(self):
+        """ Re-evaluates which movement mode the agent should be in based on how many targets it has collected and
+        knows the location of.
+        """
+
+        # Gets the current movement mode so that it can be output if the movement mode changed
+        previous_mode = self.movement_mode
+
+        # If the agent has found all of its targets
+        if self.all_targets_collected:
+            self.movement_mode == MoveModes.STOP
+        # If all targets that are left to be collected are known, change to path finding mode
+        elif len(self.self_targets_found) + len(self.targets_collected) == no_targets_per_agent:
+            self.movement_mode = MoveModes.PATHFIND
+        # If all targets that are left are not known, change to exploration mode
+        elif len(self.self_targets_found) + len(self.targets_collected) < no_targets_per_agent:
+            self.movement_mode = MoveModes.EXPLORE
+        # If all targets known + all targets collected > no_targets_per_agent, and error has occurred somewhere
+        else:
+            raise RuntimeWarning('Agent {} currently thinks it has collected/found locations for more targets than '
+                                 'possible\nfound={}, collected={}, no_targets_per_agent={}'
+                                 .format(self.g_id, len(self.self_targets_found), len(self.targets_collected),
+                                         no_targets_per_agent))
+
+        # Checks if the movement mode has changed and prints out the movement mode if it had
+        if previous_mode != self.movement_mode:
+            # Print out the movement mode of the agent
+            print("Agent {} is in {} mode".format(self.g_id, self.movement_mode))
+
     def step(self):
+        """ Runs the agent through 1 movement step. Takes into account other agent information, movement mode, etc.
         """
-
-        TODO
-        ----
-        * Add ability for agents to pathfind towards their targets while exploring if they are nearby
-        * Add a weight to the target depending on how many targets it knows the location
-        """
-
-        # Check for any information that may affect movement calculations
+        # Get info from other agents
         self.get_info()
 
-        # The location that the agent is aiming to go to
-        desired_location = None
-        # Check movement mode
-        if self.movement_mode == MoveModes.PATHFIND:
-            # Get closest target location
-            desired_location = self.get_closest_target_location()
+        # Scan area, collecting targets and finding agents in area
+        agents_in_area = self.scan_area()
 
-        try:
-            if not(prevstep == None):
-                prevstep = weighted_direction
-        except UnboundLocalError:
-            prevstep = None
-            pass
+        # Checks to see if the agent needs to run away to avoid a collision
+        if len(agents_in_area) > 0 and not self.run_away:
+            self.run_away = True
+            self.goal = self.escape_zone(agents_in_area)
 
-        # Determine movement direction based on weight function
-        weighted_direction = self.get_weighted_direction(desired_location)
+        # Check which movement mode the agent is in
+        # Exploration mode
+        elif not self.run_away and len(self.destinations) != 0 and self.movement_mode == MoveModes.EXPLORE:
+            # For each destination in the destinations list
+            for dest in self.destinations:
+                if self.get_weight(dest, self.memory) == 0:
+                    self.destinations.remove(dest)
+            if len(self.destinations) != 0:
+                # Sort the destination list by the weight of each location
+                self.destinations.sort(key=lambda x: (self.distance_from_self(x), -self.get_weight(x, self.memory)))
+                # Set the goal to the destination that was found
+                self.goal = self.destinations[0]
+        # Path finding mode
+        elif not self.run_away and self.movement_mode == MoveModes.PATHFIND and not self.all_targets_collected:
+            self.goal = self.find_closest_target(self.self_targets_found, self.location).location
 
-        if (prevstep == None):
-            prevstep = weighted_direction
+        # Checks which direction the agent should move in, setting it to self.direct
+        # If needs to move East
+        if self.location[0] < self.goal[0]:
+            self.direct = Direction.E
+        # If needs to move West
+        elif self.location[0] > self.goal[0]:
+            self.direct = Direction.W
+        # If needs to move South
+        elif self.location[1] < self.goal[1]:
+            self.direct = Direction.S
+        # If needs to move North
+        elif self.location[1] > self.goal[1]:
+            self.direct = Direction.N
 
-        # Re-evaluate number of targets known
-        if not len(self.self_targets_found) < no_targets_per_agent:
-            self.movement_mode = MoveModes.PATHFIND
+        # If the goal was reached by the agent in exploration mode, it needs to be removed from the destination list
+        if self.location == self.goal and self.movement_mode == MoveModes.EXPLORE and self.run_away is False:
+            # Pop the location from the destinations list
+            self.destinations.remove(self.goal)
 
-        # Change target direction if agent in radar
-        # TODO needs to change direction based on previous direction, not desired, to avoid collision
-        if(self.ScanArea):
-            if prevstep == Direction.N and self.location[0] + 1 < 100:
-                weighted_direction = Direction.E
-            elif prevstep == Direction.E and self.location[1] + 1 < 100:
-                weighted_direction = Direction.S
-            elif prevstep == Direction.S and self.location[0] - 1 > 0:
-                weighted_direction = Direction.W
-            elif prevstep == Direction.W and self.location[0] - 1 > 0:
-                weighted_direction = Direction.N
+        # If the goal was reached by the agent and was in run_away mode, make run_away False
+        if self.location == self.goal and self.run_away:
+            self.run_away = False
 
-        # Move in given direction
-        self.move(weighted_direction)
+        # Checks to see if the agent can move, moving it if it can
+        if self.check_move(self.direct) and self.movement_mode != MoveModes.STOP:
+            self.move(self.direct)
 
-        # Communication steps
-        # TODO Share target locations to the agents
+        # Communication
         # Checks which game mode it is in to determine how it should communicate
         if self.game_field.mode == GameModes.COMPETITIVE:
             # Currently no communication is done in competitive, but eventually trading targets based on happiness
@@ -138,11 +245,56 @@ class Agent(GameObject):
         elif self.game_field.mode == GameModes.COMPASSIONATE:
             # Shares memory to public channel
             self.post_info(self.memory)
+            # Share target information to the other agent
+            for target in self.other_targets_found:
+                self.post_info(target, target=target.owner)
+                self.other_targets_found.remove(target)
         elif self.game_field.mode == GameModes.COOPERATIVE:
             # Shares memory to public channel
             self.post_info(self.memory)
+            # Share target information to the other agent
+            for target in self.other_targets_found:
+                self.post_info(target, target=target.owner)
+                self.other_targets_found.remove(target)
+
+        # Re-evaluate which movement mode the agent should be in for the next step cycle
+        self.check_needed_movement_mode()
+
+    def escape_zone(self, agents_to_avoid, factor=1):
+        """ Determines the location for the agent to escape to in the case of a collision
+
+        Parameters
+        ----------
+        agents_to_avoid : list
+            The list of agents to avoid.
+        factor : int
+            An integer value used to increase or decrease the distance the agents need to go.
+
+        Returns
+        -------
+        escape_destination : list
+            The (x, y) co-ordinate list of the escape goal for the agent.
+        """
+        # TODO add jitter
+        num_e = len(agents_to_avoid)
+        avg_x, avg_y = 0, 0
+        for e in agents_to_avoid:
+            avg_x += int(e.location[0]/num_e)
+            avg_y += int(e.location[1]/num_e)
+
+        escape_destination = [factor*(2*self.location[0] - avg_x), factor*(2*self.location[1] - avg_y)]
+        return escape_destination
 
     def move(self, direction):
+        """ Moves the target in the given direction, updating it's memory when it moves.
+
+        Parameters
+        ----------
+        direction : Direction
+            The direction to move the target in
+        """
+
+        # Move the agent based on the direction given.
         if direction == Direction.N:
             self.location[1] -= speed
         elif direction == Direction.S:
@@ -151,161 +303,95 @@ class Agent(GameObject):
             self.location[0] += speed
         elif direction == Direction.W:
             self.location[0] -= speed
-        self.drawing_location = [self.location[0]-11, self.location[1]-11]
+        self.drawing_location = [self.location[0]-10, self.location[1]-10]
 
-    def ScanArea(self):
-        """ Scans the area for game objects, updating its memory as it finds targets. Returns whether an agent is within
-        its radar
-        """
-        nearby = self.game_field.scan_radius(self)
-        foundAgent = False
-        for obj in nearby:
-            if(isinstance(obj,Agent)):
-                #is another agent
-                foundAgent = True
-            if(isinstance(obj, Target) and obj.owner == self and not obj.collected):
-                #is a target that belongs to the agent and belongs to the agent
-                self.self_targets_found.append(obj)
-                obj.collect()
-                if len(self.self_targets_found) == no_targets_per_agent:
-                    self.winner = True
-            elif (isinstance(obj,Target) and (obj not in self.other_targets_found)):
-                #is a target that belongs to another agent
-                self.other_targets_found.append(obj)
-        return foundAgent
+        # Update the agent's memory
+        self.memorize()
 
-    def get_closest_target_location(self):
-        """ Returns the closest found target's location.
-
-        Returns
-        -------
-        best : list
-            The coordinate of the closest target to the agent in (x, y) format.
-        """
-        best_dist = inf
-        best = None
-        # finds the closest target in the targets found
-        for target in self.self_targets_found:
-            target_loc = target.get_location()
-            dist_to_target = abs(target_loc[0] - self.location[0]) + abs(target_loc[1] - self.location[1])
-            if dist_to_target < best_dist:
-                best = target_loc
-                best_dist = dist_to_target
-        return best
-
-    def get_weighted_direction(self, target):
-        """ Returns a direction for the agent to move in based on weighted values generated by its memory and given
-        target information.
+    def check_move(self, direction):
+        """ Check if the agent is able to move in the given direction. Checks to see if moving the agent in the given
+        direction will make it leave the field.
 
         Parameters
         ----------
-        target : list
-            The x, y coordinates of the target
+        direction : Direction
+            The direction to test.
 
         Returns
         -------
-        current_best : Direction
-            The movement direction to go in.
+        bool
+            Whether the agent can move in the given direction.
         """
+        # TODO return approved coordinates
+        if direction == Direction.E and self.location[0] + speed < 100:
+            return True
+        elif direction == Direction.S and self.location[1] + speed < 100:
+            return True
+        elif direction == Direction.W and self.location[0] - speed > 0:
+            return True
+        elif direction == Direction.N and self.location[1] - speed > 0:
+            return True
+        else:
+            return False
 
-        # Weighted direction from given target
-        target_x_weight = 0
-        target_y_weight = 0
-        # Checks if target was given
-        if target is not None:
-            desired_x = target[0]
-            desired_y = target[1]
+    @staticmethod
+    def get_weight(coord, mat):
+        """ Gets a weight for a given coordinate.
+        """
+        weight = 0
+        for i in range(coord[0]-5, coord[0]+5):
+            for j in range(coord[1]-5, coord[1]+5):
+                if 0 <= j < 100 and 0 <= i < 100:
+                    weight += mat[i][j]
+        return weight
 
-            # Locks off directions that do not lead to the target
-            if self.location[1] > desired_y:
-                    target_y_weight = Direction.N
-            else:
-                    target_y_weight = Direction.S
+    def scan_area(self):
+        """ Scans the area for game objects, updating its memory as it finds targets. Returns whether an agent is within
+        its radar.
 
-            if self.location[0] > desired_x:
-                target_x_weight = Direction.W
-            else:
-                target_x_weight = Direction.E
+        Returns
+        -------
+        found_agent : list
+            The list of agents that were found in the radar scan.
+        """
+        nearby = self.game_field.scan_radius(self)
+        found_agent = []
+        for obj in nearby:
+            if isinstance(obj, Agent):
+                # is another agent
+                found_agent.append(obj)
+            # is a target that belongs to the agent and belongs to the agent
+            if isinstance(obj, Target) and obj.owner == self and not obj.collected:
+                # Checks if target was in the self_targets_found list to remove if necessary
+                if obj in self.self_targets_found:
+                    self.self_targets_found.remove(obj)
 
-        # Initializes the weight of all the directions
-        weightN, weightE, weightS, weightW = 0, 0, 0, 0
+                # Collects the target
+                self.targets_collected.append(obj)
+                obj.collect()
 
-        # Each if statement checks which directions can be moved in based on if there is a wall or if it is locked from
-        # path finding in that direction
-        # Checks for North
-        if self.location[1] - speed > 0 and target_y_weight != Direction.S:
-            # Looks double the radar range in the given direction, and increases weight based on how many cells not
-            # visited
-            for j in range(0, radar_radius * 2):
-                # Tries until it hits a wall in the memory
+                if len(self.targets_collected) == no_targets_per_agent:
+                    print("Agent {} collected all of its targets".format(self.g_id))
+                    self.all_targets_collected = True
+
+            elif isinstance(obj, Target) and obj.owner != self and (obj not in self.other_targets_found):
+                # is a target that belongs to another agent
+                self.other_targets_found.append(obj)
+
+        return found_agent
+
+    def memorize(self):
+        """ Sets the area in the agent's radar range to seen.
+        """
+        for i in range(21):
+            for j in range(21):
                 try:
-                    if (self.memory[self.location[0], self.location[1] - j] == 1) and not (self.location[1] - j < 0):
-                        weightN = weightN + 1
+                    if 0 <= self.drawing_location[0] + j < 100 and 0 <= self.drawing_location[1] + i < 100:
+                        if self.body[j + i * 21] != ' ':
+                            self.memory[self.drawing_location[0] + j, self.drawing_location[1] + i] = 0
+                # Ignore IndexErrors in the case an agent is setting areas outside of game_field's bounds
                 except IndexError:
-                    break
-        # Check for South
-        if self.location[1] + speed < 100 and target_y_weight != Direction.N:
-            # Looks double the radar range in the given direction, and increases weight based on how many cells not
-            # visited
-            for j in range(0, radar_radius * 2):
-                # Tries until it hits a wall in the memory
-                try:
-                    if (self.memory[self.location[0], self.location[1] + j] == 1) and not (self.location[1] + j > 100):
-                        weightS = weightS + 1
-                except IndexError:
-                    break
-        # Checks for West
-        if self.location[0] - speed > 0 and target_x_weight != Direction.E:
-            # Looks double the radar range in the given direction, and increases weight based on how many cells not
-            # visited
-            for j in range(0, radar_radius * 2):
-                # Tries until it hits a wall in the memory
-                try:
-                    if (self.memory[self.location[0] - j,self.location[1]] == 1) and not (self.location[0] - j < 0):
-                        weightW = weightW + 1
-                except IndexError:
-                    break
-        # Checks for East
-        if self.location[0] + speed < 100 and target_x_weight != Direction.W:
-            # Looks double the radar range in the given direction, and increases weight based on how many cells not
-            # visited
-            for j in range(0, radar_radius * 2):
-                # Tries until it hits a wall in the memory
-                try:
-                    if (self.memory[self.location[0] + j,self.location[1]] == 1) and not (self.location[0] + j > 100):
-                        weightE = weightE + 1
-                except IndexError:
-                    break
-
-        # Checks which weight is higher, in case of tie picks one at random
-        current_best_weight = 0
-        current_best_direction = 0
-        current_best_val = 0
-        # Checks all weights, and in case of ties picks one at random
-        Nval,Sval,Eval,Wval = random.randint(0,100), random.randint(0,100), random.randint(0,100), random.randint(0,100)
-        # Checks North weight
-        if current_best_weight <  weightN:
-            current_best_direction = Direction.N
-            current_best_weight = weightN
-            current_best_val = Nval
-        # Checks East weight
-        if current_best_weight <  weightE or (current_best_weight == weightE and Eval > current_best_val):
-            current_best_direction = Direction.E
-            current_best_weight = weightE
-            current_best_val = Eval
-        # Checks South weight
-        if current_best_weight <  weightS or (current_best_weight == weightS and Sval > current_best_val):
-            current_best_direction = Direction.S
-            current_best_weight = weightS
-            current_best_val = Sval
-        # Checks West weight
-        if current_best_weight <  weightW or (current_best_weight == weightW and Wval > current_best_val):
-            current_best_direction = Direction.W
-            current_best_weight = weightW
-            current_best_val = Wval
-
-        # Return the current best weighted direction
-        return current_best_direction
+                    pass
 
     def post_info(self, information, target=None):
         """ Post information to the public channel. Will be stored in the game field.
@@ -320,7 +406,7 @@ class Agent(GameObject):
         """
 
         # Posts the information to game_field
-        self.game_field.post_to_channels(information, self, target)
+        self.game_field.post_to_channel(information, self, target)
 
     def get_info(self):
         """ Retrieves information from the game field, from both private and public channels, and processes it.
@@ -345,20 +431,67 @@ class Agent(GameObject):
             if isinstance(info, np.ndarray):
                 # Multiplies the new memory with its own, so it doesn't go and check areas that the given information
                 # already said was covered
-                self.memory = self.memory * info
+                self.memory *= info
 
             # Target information
             elif isinstance(info, Target):
                 # Adds the target to the necessary target memory based on its owner
                 # If target belongs to this agent
-                if info.owner == self and not info in self.self_targets_found:
+                if info.owner == self and info not in self.targets_collected and info not in self.self_targets_found:
                     # TODO After merging, this needs to be changed so that it appends to the proper target list
                     self.self_targets_found.append(info)
                 # If target belongs to another agent
-                elif info.owner != self and not info in self.other_targets_found:
+                elif info.owner != self and info not in self.other_targets_found:
                     self.other_targets_found.append(info)
             # Agent information
             elif isinstance(info, Agent):
                 # Currently only a pass, as it doesn't do anything with information about where an agent is, but is
                 # here in case it is needed in the future
                 pass
+
+    def find_closest_target(self, targets, start):
+        """ Finds the closest node to a given starting location in a given list of targets.
+
+        Parameters
+        ----------
+        targets : list
+            The list of targets to calculate the shortest path between.
+        start : list
+            The x, y coordinates of the start position.
+
+        Returns
+        -------
+        best_target: Target
+            The target that is closest to the given location.
+        """
+
+        # The best target so far
+        best_target = None
+        best_distance = inf
+        # Iterate through all targets to determine closest one
+        for target in targets:
+            current_distance = self.calculate_manhattan_distance(start, target.location)
+            # If current_distance is smaller than the best_distance, set the current target to be best
+            if current_distance < best_distance:
+                best_distance = current_distance
+                best_target = target
+
+        return best_target
+
+    @staticmethod
+    def calculate_manhattan_distance(location1, location2):
+        """ Calculates the manhattan distance between the 2 given locations.
+
+        Parameters
+        ----------
+        location1 : list
+            The first location in x, y format.
+        location2 : list
+            The second location in x, y format.
+
+        Returns
+        -------
+        Returns the manhattan distance between the targets.
+        """
+
+        return abs(location1[0] - location2[0]) + abs(location1[1] - location2[1])
