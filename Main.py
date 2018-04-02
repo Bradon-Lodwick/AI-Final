@@ -19,6 +19,21 @@ from bearlibterminal import terminal
 from Settings import *
 
 
+def play_games(no_games_per_mode, modes):
+    """ Runs the given number of games for each mode.
+
+    Parameters
+    ----------
+    no_games_per_mode : int
+        The number of games to be played for each given mode.
+    modes : list
+        The list of GameModes to run.
+    """
+    for mode in modes:
+        for i in range(0, no_games_per_mode):
+            play_game(mode)
+
+
 def play_game(mode):
     """ The main method of the game.  Creates the game field and all game objects, as defined in Settings.py, and
     runs the game until the win condition occurs.
@@ -86,15 +101,19 @@ def play_game(mode):
         # Check for the win condition
         game_complete = game_field.check_win_condition()
 
+    # TODO still errors in the way this prints to the console
     # Output game winner information to the terminal based on game mode
-    if game_field.mode == GameModes.COMPETITIVE:
-        # Still loop through all agents in case there was a tie
-        for i in range(len(finished_agents)):
-            terminal.printf(0, i * 2, "Agent {} won!".format(finished_agents[i]))
-    elif game_field.mode == GameModes.COMPASSIONATE:
-        # Still loop through all agents in case there was a tie
-        for i in range(len(finished_agents)):
-            terminal.printf(0, i * 2, "Agent {} found all its targets!".format(finished_agents[i]))
+    if game_field.mode == GameModes.COMPETITIVE or game_field.mode == GameModes.COMPASSIONATE:
+        agent_string = ''
+        for agent in finished_agents:
+            if agent_string == '':
+                agent_string += '{}'.format(agent.g_id)
+            else:
+                agent_string += ', {}'.format(agent.g_id)
+        if game_field.mode == GameModes.COMPETITIVE:
+            terminal.printf(0, 0, "Agent(s) {} won!".format(agent_string))
+        elif game_field.mode == GameModes.COMPASSIONATE:
+            terminal.printf(0, 0, "Agent(s) {} found all their targets!".format(finished_agents))
     elif game_field.mode == GameModes.COOPERATIVE:
         terminal.printf(0, 0, "All agents found their targets!")
 
@@ -143,4 +162,5 @@ def agent_threading_function(agent):
     print_agent(agent)
 
 
-play_game(GameModes.COMPASSIONATE)
+# play_game(GameModes.COMPASSIONATE)
+play_games(1, [GameModes.COMPASSIONATE, GameModes.COMPETITIVE, GameModes.COOPERATIVE])
