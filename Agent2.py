@@ -100,6 +100,9 @@ class Agent(GameObject):
         knows the location of.
         """
 
+        # Gets the current movement mode so that it can be output if the movement mode changed
+        previous_mode = self.movement_mode
+
         # If all targets have been collected
         if len(self.targets_collected) == no_targets_per_agent:
             # TODO add implementation, this would be a good spot to move the winner declarations
@@ -116,6 +119,11 @@ class Agent(GameObject):
                                  'possible\nfound={}, collected={}, no_targets_per_agent={}'
                                  .format(self.g_id, len(self.self_targets_found), len(self.targets_collected),
                                          no_targets_per_agent))
+
+        # Checks if the movement mode has changed and prints out the movement mode if it had
+        if previous_mode != self.movement_mode:
+            # Print out the movement mode of the agent
+            print("Agent {} is in {} mode".format(self.g_id, self.movement_mode))
 
     def step(self):
         # TODO Collect steps when running away
@@ -163,7 +171,7 @@ class Agent(GameObject):
         if self.check_move(self.direct) and (len(self.destinations) != 0 or self.run_away):
             self.move(self.direct)
 
-        elif len(self.destinations) != 0:
+        elif len(self.destinations) != 0 and self.movement_mode == MoveModes.EXPLORE:
             self.goal = self.destinations[0]
 
         # Checks which game mode it is in to determine how it should communicate
@@ -331,28 +339,6 @@ class Agent(GameObject):
                 # Currently only a pass, as it doesn't do anything with information about where an agent is, but is
                 # here in case it is needed in the future
                 pass
-
-    def evaluate_move_mode(self):
-        """ Evaluates which movement mode the agent should be in by checking how many targets the agent has locations
-        for and how many it has collected.
-
-        Returns
-        -------
-        self.movement_mode : MoveModes
-            The movement mode the agent has been set to.
-        """
-
-        # If the agent doesn't know all target locations, continue exploration mode
-        if len(self.targets_collected) + len(self.self_targets_found) < no_targets_per_agent:
-            self.movement_mode = MoveModes.EXPLORE
-        # If the agent knows where all the remaining targets to be collected are
-        elif len(self.targets_collected) + len(self.self_targets_found) == no_targets_per_agent:
-            self.movement_mode = MoveModes.PATHFIND
-        # If it reaches this state, then an error has occurred when assigning the agent's target memory
-        else:
-            raise RuntimeError("The number of targets in agent {0}'s targets found and collected memory acceeds "
-                               "total targets\ntargets_collected={1}\ntargets_found={2}".
-                               format(self.g_id, len(self.targets_collected), len(self.self_targets_found)))
 
     def find_closest_target(self, targets, start):
         """ Finds the closest node to a given starting location in a given list of targets.
