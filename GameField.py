@@ -205,20 +205,15 @@ class GameField:
         # Both competitive and compassionate have same exit condition in that only 1 needs to have collected all targets
         if self.mode == GameModes.COMPETITIVE or self.mode == GameModes.COMPASSIONATE:
             # Check if any of the agents is done collecting their targets
-            for agent in self.agents:
-                # Return true if any of the agents finished
-                if agent.all_targets_collected:
-                    win_condition_met = True
-                    break
+            win_condition_met = True in [agent.all_targets_collected for agent in self.agents]
+
         elif self.mode == GameModes.COOPERATIVE:
             # Check if all the agents are done collecting their targets
-            for agent in self.agents:
-                # Doesn't break since all targets need to be found for all agents
-                if agent.all_targets_collected:
-                    win_condition_met = True
-                # Breaks when one agent hasn't met the condition, setting win_condition_met to False
-                else:
-                    win_condition_met = False
+            if False in [agent.all_targets_collected for agent in self.agents]:
+                win_condition_met = False
+            else:
+                win_condition_met = True
+
         return win_condition_met
 
     def check_all_agents_ready(self):
