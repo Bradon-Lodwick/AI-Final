@@ -46,6 +46,7 @@ def play_game(mode):
     # TODO change game_complete to True through a check that should be added in GameField
     while not game_complete:
         # The first agent in the game_field's list, to be used when showing memory values on the terminal
+
         ag0 = game_field.agents[0]
 
         # Draws all of the targets on the terminal
@@ -92,7 +93,6 @@ def print_agent(agent):
     agent : Agent
         The agent to print to the terminal.
     """
-
     for i in range(21):
         for j in range(21):
             if agent.body[j + i * 21] != ' ':
