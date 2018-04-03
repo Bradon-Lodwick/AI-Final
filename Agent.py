@@ -30,6 +30,8 @@ class Agent(GameObject):
             self.targets_collected.
         body : str
             The shape of the agent to be drawn in the terminal.
+        cooldown : int
+            A value between 0-10 saying if a compassionate agent can give other agents their targets.
         destinations : list
             The list of destinations for the agent to go to for exploration mode.
         direct : Direction
@@ -85,6 +87,9 @@ class Agent(GameObject):
         self.destinations = []
         self.add_sub_locations()
         self.add_sub_locations()
+
+        # Set cooldown to 0 so that in compassionate it doesn't always trade each step
+        self.cooldown = 0
 
         # Initializes the agent's movement to the exploration mode
         self.movement_mode = MoveModes.EXPLORE
@@ -231,6 +236,34 @@ class Agent(GameObject):
     def step(self):
         """ Runs the agent through 1 movement step. Takes into account other agent information, movement mode, etc.
         """
+        # Communication
+        # Checks which game mode it is in to determine how it should communicate
+        if self.game_field.mode == GameModes.COMPETITIVE:
+            # Currently no communication is done in competitive, but eventually trading targets based on happiness
+            # could be added
+            if len(self.other_targets_found) > 0 and \
+                            (len(self.targets_collected) / (self.no_steps_taken + 1)) < (happiness_threshold) \
+                    and self.movement_mode != MoveModes.PATHFIND:
+                self.game_field.post_trade(self, self.other_targets_found)
+        elif self.game_field.mode == GameModes.COMPASSIONATE:
+            # Makes sure the happiness list has at least one value
+            if len(self.happiness_list) > 0 and self.cooldown == 0:
+                # Gets current happiness, and sees if it is above a threshold meaning it is happier than average
+                if self.happiness_list[-1] > happiness_threshold and len(self.other_targets_found) > 0:
+                    target_to_send = self.other_targets_found.pop(0)
+                    self.post_info(target_to_send, target=target_to_send.owner)
+                    print("Agent {} gave agent {} target {}".format(self.g_id, target_to_send.owner.g_id,
+                                                                    target_to_send.g_id))
+                    self.cooldown = 25
+            elif self.cooldown > 0:
+                self.cooldown -= 1
+        elif self.game_field.mode == GameModes.COOPERATIVE:
+            # Shares memory to public channel
+            self.post_info(self.memory)
+            # Share target information to the other agent
+            for target in self.other_targets_found:
+                self.post_info(target, target=target.owner)
+                self.other_targets_found.remove(target)
         # Get info from other agents
         self.get_info()
 
@@ -258,7 +291,7 @@ class Agent(GameObject):
                 # Set the goal to the destination that was found
                 self.goal = self.destinations[0]
         # Path finding mode
-        elif not self.run_away and self.movement_mode == MoveModes.PATHFIND and not self.all_targets_collected\
+        elif not self.run_away and self.movement_mode == MoveModes.PATHFIND  and not self.all_targets_collected\
                 and len(self.self_targets_found) > 0:
             self.goal = self.find_closest_target(self.self_targets_found, self.location).location
 
@@ -291,30 +324,6 @@ class Agent(GameObject):
         if self.check_move(self.direct) and self.movement_mode != MoveModes.STOP:
             self.move(self.direct)
 
-        # Communication
-        # Checks which game mode it is in to determine how it should communicate
-        if self.game_field.mode == GameModes.COMPETITIVE:
-            # Currently no communication is done in competitive, but eventually trading targets based on happiness
-            # could be added
-            if len(self.other_targets_found) > 0 and (len(self.targets_collected) / (self.no_steps_taken + 1)) < (trading_threshold)\
-                    and self.movement_mode != MoveModes.PATHFIND:
-                self.game_field.post_trade(self, self.other_targets_found)
-            pass
-        elif self.game_field.mode == GameModes.COMPASSIONATE:
-            # Shares memory to public channel
-            self.post_info(self.memory)
-            # Share target information to the other agent
-            for target in self.other_targets_found:
-                self.post_info(target, target=target.owner)
-                self.other_targets_found.remove(target)
-        elif self.game_field.mode == GameModes.COOPERATIVE:
-            # Shares memory to public channel
-            self.post_info(self.memory)
-            # Share target information to the other agent
-            for target in self.other_targets_found:
-                self.post_info(target, target=target.owner)
-                self.other_targets_found.remove(target)
-
         # Increment steps taken
         self.no_steps_taken += 1
         # Update happiness list
@@ -343,8 +352,8 @@ class Agent(GameObject):
         for e in agents_to_avoid:
             avg_x += int(e.location[0] / num_e)
             avg_y += int(e.location[1] / num_e)
-        jitt_x = random.randint(-2, 2)
-        jitt_y = random.randint(-2, 2)
+        jitt_x = random.randint(-4, 4)
+        jitt_y = random.randint(-4, 4)
         escape_destination = [factor * (2 * self.location[0] - avg_x) + jitt_x,
                               factor * (2 * self.location[1] - avg_y) + jitt_y]
         return escape_destination
@@ -518,7 +527,7 @@ class Agent(GameObject):
     #the other agent sends the SELF targets they already have (don't want) and this is checked with what we have
     def get_trade(self, Offer, targets_not_wanted, Agent_Offering):
         #if happiness is low enough (below the threshold) and the trade is good for both agents
-        if (len(self.targets_collected) / (self.no_steps_taken + 1)) < (trading_threshold) and \
+        if (len(self.targets_collected) / (self.no_steps_taken + 1)) < (happiness_threshold) and \
                 (Offer not in self.targets_collected) and (Offer not in self.self_targets_found):
 
             for i in range(len(self.other_targets_found)):

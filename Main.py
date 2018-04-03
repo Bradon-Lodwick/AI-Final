@@ -111,6 +111,9 @@ def play_game(mode, run_no=1):
         for t in threads:
             t.join()
 
+        # Clear the game_field's channels
+        game_field.clear_channels()
+
         # Prints to the terminal which agents finished collecting their targets
         for i in range(len(finished_agents)):
             terminal.printf(0, i * 2, "Agent {} done".format(finished_agents[i].g_id))
@@ -128,32 +131,6 @@ def play_game(mode, run_no=1):
 
     # Get happiness
     return game_field.get_agent_happinesses(run_no)
-
-
-
-    # TODO still errors in the way this prints to the console
-    # Output game winner information to the terminal based on game mode
-    if game_field.mode == GameModes.COMPETITIVE or game_field.mode == GameModes.COMPASSIONATE:
-        agent_string = ''
-        for agent in finished_agents:
-            if agent_string == '':
-                agent_string += '{}'.format(agent.g_id)
-            else:
-                agent_string += ', {}'.format(agent.g_id)
-        if game_field.mode == GameModes.COMPETITIVE:
-            terminal.printf(0, 0, "Agent(s) {} won!".format(agent_string))
-        elif game_field.mode == GameModes.COMPASSIONATE:
-            terminal.printf(0, 0, "Agent(s) {} found all their targets!".format(finished_agents))
-    elif game_field.mode == GameModes.COOPERATIVE:
-        terminal.printf(0, 0, "All agents found their targets!")
-
-    # Refresh the terminal
-    terminal.refresh()
-
-    # Stops terminal from closing when game is complete
-    if terminal.read() != terminal.TK_CLOSE:
-        terminal.close()
-
 
 
 def print_agent(agent):
@@ -205,7 +182,7 @@ def agent_threading_function(agent):
 
 
 # play_game(GameModes.COMPASSIONATE)
-csvData = play_games(no_iterations, [GameModes.COMPETITIVE, GameModes.COOPERATIVE,GameModes.COMPASSIONATE])
+csvData = play_games(no_iterations, [GameModes.COMPASSIONATE, GameModes.COMPETITIVE, GameModes.COOPERATIVE])
 
 add_to_csv(csvData)
 add_to_csv2(csvData)
