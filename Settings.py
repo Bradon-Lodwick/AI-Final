@@ -14,7 +14,7 @@ no_iterations = 1
 
 # TERMINAL SETTINGS
 # The refresh rate of the terminal
-refresh = 0
+refresh = 0.1
 
 # AGENT SETTINGS
 # Speed of the agents

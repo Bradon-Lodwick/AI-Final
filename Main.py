@@ -66,6 +66,8 @@ def play_game(mode, run_no=1):
     while not game_complete:
         # The first agent in the game_field's list, to be used when showing memory values on the terminal
 
+        time_s = time.time()
+
         ag0 = game_field.agents[0]
 
         # Draws all of the targets on the terminal
@@ -79,10 +81,18 @@ def play_game(mode, run_no=1):
                 colour = "#ffffff"
             tar_location = tar.get_location()
             terminal.printf(tar_location[0], tar_location[1], "[color={}]{}[/color]".format(colour, tar.name))
+
         for i in range(size_x):
             for j in range(size_y):
                 if ag0.memory[i][j] == 1:
                     terminal.printf(i, j, "[color=white].[/color]")
+
+        # un-comment for destination weights to be printed
+        '''
+        for dest in ag0.destinations:
+            mem = ag0.get_weight(dest, ag0.memory)
+            terminal.printf(dest[0], dest[1], "{}".format(mem))
+        '''
 
         # Starts the threading for the agents
         # The agent threads list
@@ -106,7 +116,8 @@ def play_game(mode, run_no=1):
             terminal.printf(0, i * 2, "Agent {} done".format(finished_agents[i].g_id))
 
         # Refresh the terminal
-        time.sleep(refresh)
+        while(time.time() - time_s < refresh):
+            pass
         terminal.refresh()
         terminal.clear()
 

@@ -329,8 +329,8 @@ class Agent(GameObject):
         for e in agents_to_avoid:
             avg_x += int(e.location[0] / num_e)
             avg_y += int(e.location[1] / num_e)
-        jitt_x = random.randint(-1, 1)
-        jitt_y = random.randint(-1, 1)
+        jitt_x = random.randint(-2, 2)
+        jitt_y = random.randint(-2, 2)
         escape_destination = [factor * (2 * self.location[0] - avg_x) + jitt_x,
                               factor * (2 * self.location[1] - avg_y) + jitt_y]
         return escape_destination
