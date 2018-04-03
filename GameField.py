@@ -66,6 +66,8 @@ class GameField:
         self.public_info = list()
         self.private_info = list()
 
+        print("GameMode: {}".format(self.mode))
+
     def scan_radius(self, agent):
         origin = (agent.location[0], agent.location[1])
         surroundings = []
@@ -138,6 +140,7 @@ class GameField:
         target_agent : Agent
             The agent that the information is to be sent to in the case that the channel type is set to private.
             If the agent is set to None, then the information is posted to the public channel.
+            DEPRECATED: Private Channel functionality is now handled by post_trade() and get_trade()
         """
 
         # Checks if an agent was given
