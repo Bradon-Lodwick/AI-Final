@@ -189,7 +189,8 @@ class Agent(GameObject):
             # Print out the movement mode of the agent
             print("Agent {} is in {} mode".format(self.g_id, self.movement_mode))
 
-    def fix_goal(self, goal):
+    @staticmethod
+    def fix_goal(goal):
         new_goal = goal
         if goal[0] < 0:
             new_goal[0] = 0
@@ -367,11 +368,13 @@ class Agent(GameObject):
     def get_weight(coord, mat):
         """ Gets a weight for a given coordinate.
         """
-        weight = 0
+        weight = mat[coord[0]-5:coord[0]+5, coord[1]-5:coord[1]+5].sum()
+        '''
         for i in range(coord[0]-5, coord[0]+5):
             for j in range(coord[1]-5, coord[1]+5):
                 if 0 <= j < 100 and 0 <= i < 100:
                     weight += mat[i][j]
+        '''
         return weight
 
     def scan_area(self):
