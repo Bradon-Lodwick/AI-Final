@@ -176,7 +176,8 @@ class Agent(GameObject):
 
         # If the agent has found all of its targets
         if self.all_targets_collected and self.game_field.mode == GameModes.COOPERATIVE:
-            self.movement_mode == MoveModes.STOP
+            #self.movement_mode = MoveModes.STOP
+            pass
         # If all targets that are left to be collected are known
         elif len(self.self_targets_found) + len(self.targets_collected) == no_targets_per_agent:
             # Changes based on which mode the game is in
