@@ -3,4 +3,4 @@
 *pycache*
 rand_agent.py
 test_data
-csv
+*.csv

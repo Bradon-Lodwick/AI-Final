@@ -27,7 +27,7 @@ class Agent(GameObject):
         ----------
         all_targets_collected : bool
             Holds whether all of the agent's targets have been collected by itself. Collected targets are stored in
-            self.targets_collected
+            self.targets_collected.
         body : str
             The shape of the agent to be drawn in the terminal.
         destinations : list
@@ -42,6 +42,8 @@ class Agent(GameObject):
             The game field that the object is on.
         goal : list
             The location the agent would like to move into
+        happiness_list : double
+            The happiness of the agent.
         location : list
             The location of the object on the game field.
         memory : np.Array
@@ -49,10 +51,14 @@ class Agent(GameObject):
             gone to the location, 1 means it has not.
         movement_mode : MoveMode
             The movement mode that the object is in.
+        no_steps_taken : int
+            The number of steps the agent has moved.
         other_targets_found : list
             The list of targets that the agent does not own and knows the location of.
         self_targets_found : list
             The list of targets that the agent owns and knows the location of.
+        std_deviation : double
+            The standard deviation of the agent's happiness.
         targets_collected : list
             The list of targets that the agent has collected.
         """
@@ -82,6 +88,15 @@ class Agent(GameObject):
 
         # Initializes the agent's movement to the exploration mode
         self.movement_mode = MoveModes.EXPLORE
+
+        # Happiness setup
+        # Sets the number of steps the agent has taken to 0
+        self.no_steps_taken = 0
+        # Set initial happiness of list to an empty list
+        self.happiness_list = list()
+
+        # Set the minimum
+        self.std_deviation = None
 
         # Sets the direction the agent is to go in to None, as at initialization it doesn't have a goal set
         self.direct = None
@@ -285,6 +300,11 @@ class Agent(GameObject):
             for target in self.other_targets_found:
                 self.post_info(target, target=target.owner)
                 self.other_targets_found.remove(target)
+
+        # Increment steps taken
+        self.no_steps_taken += 1
+        # Update happiness list
+        self.happiness_list.append(len(self.targets_collected) / (self.no_steps_taken + 1))
 
         # Re-evaluate which movement mode the agent should be in for the next step cycle
         self.check_needed_movement_mode()
@@ -527,3 +547,53 @@ class Agent(GameObject):
         """
 
         return abs(location1[0] - location2[0]) + abs(location1[1] - location2[1])
+
+    def calculate_happiness_variables(self):
+        """ Calculates the happiness variables of the agent, and return all information as a dictionary.
+
+        Returns
+        -------
+        happiness_dict : dict
+            The happiness dictionary
+        """
+
+        # The dictionary to be returned
+        happiness_dict = dict()
+
+        # Game mode
+        happiness_dict['mode'] = self.game_field.mode.value
+
+        # Agent number
+        happiness_dict['agent'] = self.g_id
+
+        # Targets collected
+        happiness_dict['targets'] = len(self.targets_collected)
+
+        # Steps taken
+        happiness_dict['steps'] = self.no_steps_taken
+
+        # Final happiness
+        happiness_dict['happiness'] = self.happiness_list[-1]
+
+        # Find the minimum and maximum happiness
+        happiness_dict['min'] = min(self.happiness_list)
+        happiness_dict['max'] = max(self.happiness_list)
+
+        # Calculate average happiness
+        total = 0
+        for happiness in self.happiness_list:
+            total += happiness
+        happiness_dict['avg'] = total / len(self.happiness_list)
+
+        # Calculate standard deviation of the agent
+        happiness_dict['std'] = np.std(self.happiness_list)
+
+        # Calculate the competitiveness of the agent
+        try:
+            happiness_dict['competitiveness'] = (happiness_dict['happiness'] - happiness_dict['min']) / \
+                                                (happiness_dict['max'] - happiness_dict['min'])
+        # Set to 0 if divide by 0, as that means it was not competitive at all
+        except ZeroDivisionError:
+            happiness_dict['competitiveness'] = 0
+
+        return happiness_dict

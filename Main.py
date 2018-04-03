@@ -14,6 +14,7 @@ __status__ = "Prototype"
 
 import time
 import threading
+from Util import *
 from GameField import GameField
 from bearlibterminal import terminal
 from Settings import *
@@ -29,12 +30,14 @@ def play_games(no_games_per_mode, modes):
     modes : list
         The list of GameModes to run.
     """
+    data = list()
     for mode in modes:
         for i in range(0, no_games_per_mode):
-            play_game(mode)
+            data.extend(play_game(mode, i+1))
+    return data
 
 
-def play_game(mode):
+def play_game(mode, run_no=1):
     """ The main method of the game.  Creates the game field and all game objects, as defined in Settings.py, and
     runs the game until the win condition occurs.
 
@@ -42,6 +45,8 @@ def play_game(mode):
     ----------
     mode : GameModes
         The game mode that the game is to be played in.
+    run_no : int
+        The run number of the game.
     """
 
     # Set up the game_field object, as well as the agents when the game field is created.
@@ -108,6 +113,11 @@ def play_game(mode):
         # Check for the win condition
         game_complete = game_field.check_win_condition()
 
+    # Get happiness
+    return game_field.get_agent_happinesses(run_no)
+
+
+
     # TODO still errors in the way this prints to the console
     # Output game winner information to the terminal based on game mode
     if game_field.mode == GameModes.COMPETITIVE or game_field.mode == GameModes.COMPASSIONATE:
@@ -130,6 +140,7 @@ def play_game(mode):
     # Stops terminal from closing when game is complete
     if terminal.read() != terminal.TK_CLOSE:
         terminal.close()
+
 
 
 def print_agent(agent):
@@ -179,5 +190,14 @@ def agent_threading_function(agent):
     print_agent(agent)
 
 
+
 # play_game(GameModes.COMPASSIONATE)
-play_games(1, [GameModes.COMPASSIONATE, GameModes.COMPETITIVE, GameModes.COOPERATIVE])
+csvData = play_games(no_iterations, [GameModes.COMPETITIVE, GameModes.COOPERATIVE,GameModes.COMPASSIONATE])
+
+add_to_csv(csvData)
+add_to_csv2(csvData)
+
+#adds to the second csv file, once for each game mode
+#add_to_csv2(1,,)
+#add_to_csv2(2,,)
+#add_to_csv2(2,,)
