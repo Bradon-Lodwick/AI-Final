@@ -30,11 +30,12 @@ class Target(GameObject):
             The agent that owns the target
         """
 
-    def __init__(self, game_field, g_id, location, owner):
+    def __init__(self, game_field, g_id, location, owner, lie=False):
         GameObject.__init__(self, game_field, g_id, location)
         self.owner = owner
         self.name = "{}-{}".format(owner.g_id, g_id)
         self.collected = False
+        self.lie = lie
 
     def collect(self):
         self.collected = True

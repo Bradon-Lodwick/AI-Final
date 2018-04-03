@@ -111,9 +111,6 @@ def play_game(mode, run_no=1):
         for t in threads:
             t.join()
 
-        # Clear the game_field's channels
-        game_field.clear_channels()
-
         # Prints to the terminal which agents finished collecting their targets
         for i in range(len(finished_agents)):
             terminal.printf(0, i * 2, "Agent {} done".format(finished_agents[i].g_id))
@@ -182,7 +179,7 @@ def agent_threading_function(agent):
 
 
 # play_game(GameModes.COMPASSIONATE)
-csvData = play_games(no_iterations, [GameModes.COMPASSIONATE, GameModes.COMPETITIVE, GameModes.COOPERATIVE])
+csvData = play_games(no_iterations, [GameModes.COMPETITIVE, GameModes.COOPERATIVE, GameModes.COMPASSIONATE])
 
 add_to_csv(csvData)
 add_to_csv2(csvData)

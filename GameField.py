@@ -238,6 +238,7 @@ class GameField:
     def post_trade(self, Agent_Posting, targets_to_trade):
         targets_not_wanted = Agent_Posting.self_targets_found + Agent_Posting.targets_collected
         recieved_target = None
+
         for TradeT in targets_to_trade:
             recieved_target = TradeT.owner.get_trade(TradeT, targets_not_wanted, Agent_Posting)
             if recieved_target is not None:

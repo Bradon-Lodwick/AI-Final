@@ -89,7 +89,7 @@ class Agent(GameObject):
         self.add_sub_locations()
 
         # Set cooldown to 0 so that in compassionate it doesn't always trade each step
-        self.cooldown = 0
+        self.cooldown = 50
 
         # Initializes the agent's movement to the exploration mode
         self.movement_mode = MoveModes.EXPLORE
@@ -197,22 +197,14 @@ class Agent(GameObject):
                 self.movement_mode = MoveModes.EXPLORE
 
         # if the agent is in competitive mode and traded for a target
-        elif len(self.self_targets_found) > 0 and ((self.game_field.mode == GameModes.COMPETITIVE) or (self.game_field.mode == GameModes.COMPASSIONATE)) and not (self.all_targets_collected):
+        elif len(self.self_targets_found) > 0 and \
+                ((self.game_field.mode == GameModes.COMPETITIVE) or (self.game_field.mode == GameModes.COMPASSIONATE)) \
+                and not self.all_targets_collected:
             self.movement_mode = MoveModes.PATHFIND
 
         # If all targets that are left are not known, change to exploration mode
         elif len(self.self_targets_found) + len(self.targets_collected) < no_targets_per_agent:
             self.movement_mode = MoveModes.EXPLORE
-
-
-        # If all targets known + all targets collected > no_targets_per_agent, and error has occurred somewhere
-        else:
-            raise RuntimeWarning('Agent {} currently thinks it has collected/found locations for more targets than '
-                                 'possible\nfound={}, collected={}, no_targets_per_agent={}'
-                                 .format(self.g_id, len(self.self_targets_found), len(self.targets_collected),
-                                         no_targets_per_agent))
-
-
 
         # Checks if the movement mode has changed and prints out the movement mode if it had
         if previous_mode != self.movement_mode:
@@ -236,34 +228,6 @@ class Agent(GameObject):
     def step(self):
         """ Runs the agent through 1 movement step. Takes into account other agent information, movement mode, etc.
         """
-        # Communication
-        # Checks which game mode it is in to determine how it should communicate
-        if self.game_field.mode == GameModes.COMPETITIVE:
-            # Currently no communication is done in competitive, but eventually trading targets based on happiness
-            # could be added
-            if len(self.other_targets_found) > 0 and \
-                            (len(self.targets_collected) / (self.no_steps_taken + 1)) < (happiness_threshold) \
-                    and self.movement_mode != MoveModes.PATHFIND:
-                self.game_field.post_trade(self, self.other_targets_found)
-        elif self.game_field.mode == GameModes.COMPASSIONATE:
-            # Makes sure the happiness list has at least one value
-            if len(self.happiness_list) > 0 and self.cooldown == 0:
-                # Gets current happiness, and sees if it is above a threshold meaning it is happier than average
-                if self.happiness_list[-1] > happiness_threshold and len(self.other_targets_found) > 0:
-                    target_to_send = self.other_targets_found.pop(0)
-                    self.post_info(target_to_send, target=target_to_send.owner)
-                    print("Agent {} gave agent {} target {}".format(self.g_id, target_to_send.owner.g_id,
-                                                                    target_to_send.g_id))
-                    self.cooldown = 25
-            elif self.cooldown > 0:
-                self.cooldown -= 1
-        elif self.game_field.mode == GameModes.COOPERATIVE:
-            # Shares memory to public channel
-            self.post_info(self.memory)
-            # Share target information to the other agent
-            for target in self.other_targets_found:
-                self.post_info(target, target=target.owner)
-                self.other_targets_found.remove(target)
         # Get info from other agents
         self.get_info()
 
@@ -331,6 +295,59 @@ class Agent(GameObject):
 
         # Re-evaluate which movement mode the agent should be in for the next step cycle
         self.check_needed_movement_mode()
+
+        # Communication
+        # Checks which game mode it is in to determine how it should communicate
+        if self.game_field.mode == GameModes.COMPETITIVE:
+            # Currently no communication is done in competitive, but eventually trading targets based on happiness
+            # could be added
+            if self.cooldown > 0:
+                self.cooldown -= 1
+            if len(self.other_targets_found) > 0 and \
+                            (len(self.targets_collected) / (self.no_steps_taken + 1)) < (happiness_threshold) \
+                    and self.movement_mode != MoveModes.PATHFIND:
+                # Generate a random number determining if the agent will lie
+                lie_ch = random.uniform(0, happiness_threshold)
+                # If the lie_ch was greater than happiness, it will lie
+                if lie_ch > len(self.targets_collected) / (self.no_steps_taken + 1) and self.cooldown == 0:
+                    # Gets the agent list from the game field to send a random agent the lie
+                    agent_list = list()
+                    agent_list.extend(self.game_field.agents)
+                    agent_list.remove(self)
+                    rand_agent = random.randint(0, len(agent_list)-1)
+
+                    # Creates the lie target
+                    lie_location = self.game_field.generate_location()
+                    lie_target = Target(self.game_field, "lie {}-{}".format(self.g_id, agent_list[rand_agent].g_id),
+                                        lie_location, agent_list[rand_agent], lie=True)
+                    self.game_field.object_list.append(lie_target)
+                    lie_list = [lie_target]
+                    print("Agent {} lying to {}".format(self.g_id, agent_list[rand_agent].g_id))
+                    print("{}".format(lie_location))
+                    self.game_field.post_trade(self, lie_list)
+                    self.cooldown = 50
+                else:
+                    self.game_field.post_trade(self, self.other_targets_found)
+
+        elif self.game_field.mode == GameModes.COMPASSIONATE:
+            # Makes sure the happiness list has at least one value
+            if len(self.happiness_list) > 0 and self.cooldown == 0:
+                # Gets current happiness, and sees if it is above a threshold meaning it is happier than average
+                if self.happiness_list[-1] > happiness_threshold and len(self.other_targets_found) > 0:
+                    target_to_send = self.other_targets_found.pop(0)
+                    self.post_info(target_to_send, target=target_to_send.owner)
+                    print("Agent {} gave agent {} target {}".format(self.g_id, target_to_send.owner.g_id,
+                                                                    target_to_send.g_id))
+                    self.cooldown = 25
+            elif self.cooldown > 0:
+                self.cooldown -= 1
+        elif self.game_field.mode == GameModes.COOPERATIVE:
+            # Shares memory to public channel
+            self.post_info(self.memory)
+            # Share target information to the other agent
+            for target in self.other_targets_found:
+                self.post_info(target, target=target.owner)
+                self.other_targets_found.remove(target)
 
     def escape_zone(self, agents_to_avoid, factor=1):
         """ Determines the location for the agent to escape to in the case of a collision
@@ -436,14 +453,19 @@ class Agent(GameObject):
                 # is another agent
                 found_agent.append(obj)
             # is a target that belongs to the agent and belongs to the agent
-            if isinstance(obj, Target) and obj.owner == self and not obj.collected:
+            elif isinstance(obj, Target) and obj.owner == self and not obj.collected:
                 # Checks if target was in the self_targets_found list to remove if necessary
                 if obj in self.self_targets_found:
                     self.self_targets_found.remove(obj)
 
                 # Collects the target
-                self.targets_collected.append(obj)
-                obj.collect()
+                if obj.lie is False:
+                    self.targets_collected.append(obj)
+                    obj.collect()
+                else:
+                    # remove trust for that agent
+                    print("Agent {} realized the cold truth of a lie".format(self.g_id))
+                    obj.collect()
 
                 if len(self.targets_collected) == no_targets_per_agent:
                     print("Agent {} collected all of its targets".format(self.g_id))
