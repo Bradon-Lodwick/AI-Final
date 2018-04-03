@@ -123,6 +123,8 @@ def play_game(mode, run_no=1):
 
         # Check for the win condition
         game_complete = game_field.check_win_condition()
+        if game_complete:
+            print ("\n \n \n \n")
 
     # Get happiness
     return game_field.get_agent_happinesses(run_no)
