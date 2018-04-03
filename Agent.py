@@ -521,12 +521,15 @@ class Agent(GameObject):
         best_target = None
         best_distance = inf
         # Iterate through all targets to determine closest one
+        '''
         for target in targets:
             current_distance = self.calculate_manhattan_distance(start, target.location)
             # If current_distance is smaller than the best_distance, set the current target to be best
             if current_distance < best_distance:
                 best_distance = current_distance
                 best_target = target
+        '''
+        best_target = min(targets, key=lambda tar: self.calculate_manhattan_distance(start, tar.location))
 
         return best_target
 
