@@ -10,6 +10,8 @@ no_agents = 5
 # The number of targets for each agent
 no_targets_per_agent = 5
 
+trading_threshold = 1/100
+
 no_iterations = 1
 
 # TERMINAL SETTINGS

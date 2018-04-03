@@ -257,7 +257,8 @@ class Agent(GameObject):
                 # Set the goal to the destination that was found
                 self.goal = self.destinations[0]
         # Path finding mode
-        elif not self.run_away and self.movement_mode == MoveModes.PATHFIND and not self.all_targets_collected:
+        elif not self.run_away and self.movement_mode == MoveModes.PATHFIND and not self.all_targets_collected\
+                and len(self.self_targets_found) > 0:
             self.goal = self.find_closest_target(self.self_targets_found, self.location).location
 
         # Checks which direction the agent should move in, setting it to self.direct
@@ -294,7 +295,7 @@ class Agent(GameObject):
         if self.game_field.mode == GameModes.COMPETITIVE:
             # Currently no communication is done in competitive, but eventually trading targets based on happiness
             # could be added
-            if len(self.other_targets_found) > 0 and (len(self.targets_collected) / (self.no_steps_taken + 1)) < (1/51)\
+            if len(self.other_targets_found) > 0 and (len(self.targets_collected) / (self.no_steps_taken + 1)) < (trading_threshold)\
                     and self.movement_mode != MoveModes.PATHFIND:
                 self.game_field.post_trade(self, self.other_targets_found)
             pass
@@ -515,9 +516,8 @@ class Agent(GameObject):
 
     #the other agent sends the SELF targets they already have (don't want) and this is checked with what we have
     def get_trade(self, Offer, targets_not_wanted, Agent_Offering):
-        #if happiness is low enough (1 target out of 51 steps) and the trade is good for both agents
-        #if (self.happiness_list[-1] < (1/51)) and \
-        if (len(self.targets_collected) / (self.no_steps_taken + 1)) < (1/51) and \
+        #if happiness is low enough (below the threshold) and the trade is good for both agents
+        if (len(self.targets_collected) / (self.no_steps_taken + 1)) < (trading_threshold) and \
                 (Offer not in self.targets_collected) and (Offer not in self.self_targets_found):
 
             for i in range(len(self.other_targets_found)):
@@ -559,10 +559,10 @@ class Agent(GameObject):
                 best_distance = current_distance
                 best_target = target
         '''
-        if len(targets) == 0:
-            print('error inc')
+        try:
+            best_target = min(targets, key=lambda tar: self.calculate_manhattan_distance(start, tar.location))
+        except ValueError:
             pass
-        best_target = min(targets, key=lambda tar: self.calculate_manhattan_distance(start, tar.location))
 
         return best_target
 
