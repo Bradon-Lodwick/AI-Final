@@ -175,7 +175,7 @@ class Agent(GameObject):
         previous_mode = self.movement_mode
 
         # If the agent has found all of its targets
-        if self.all_targets_collected:
+        if self.all_targets_collected and self.game_field.mode == GameModes.COOPERATIVE:
             self.movement_mode == MoveModes.STOP
         # If all targets that are left to be collected are known
         elif len(self.self_targets_found) + len(self.targets_collected) == no_targets_per_agent:
@@ -189,15 +189,24 @@ class Agent(GameObject):
                 self.movement_mode = MoveModes.PATHFIND
             else:
                 self.movement_mode = MoveModes.EXPLORE
+
+        # if the agent is in competitive mode and traded for a target
+        elif len(self.self_targets_found) > 0 and ((self.game_field.mode == GameModes.COMPETITIVE) or (self.game_field.mode == GameModes.COMPASSIONATE)) and not (self.all_targets_collected):
+            self.movement_mode = MoveModes.PATHFIND
+
         # If all targets that are left are not known, change to exploration mode
         elif len(self.self_targets_found) + len(self.targets_collected) < no_targets_per_agent:
             self.movement_mode = MoveModes.EXPLORE
+
+
         # If all targets known + all targets collected > no_targets_per_agent, and error has occurred somewhere
         else:
             raise RuntimeWarning('Agent {} currently thinks it has collected/found locations for more targets than '
                                  'possible\nfound={}, collected={}, no_targets_per_agent={}'
                                  .format(self.g_id, len(self.self_targets_found), len(self.targets_collected),
                                          no_targets_per_agent))
+
+
 
         # Checks if the movement mode has changed and prints out the movement mode if it had
         if previous_mode != self.movement_mode:
@@ -550,6 +559,9 @@ class Agent(GameObject):
                 best_distance = current_distance
                 best_target = target
         '''
+        if len(targets) == 0:
+            print('error inc')
+            pass
         best_target = min(targets, key=lambda tar: self.calculate_manhattan_distance(start, tar.location))
 
         return best_target
