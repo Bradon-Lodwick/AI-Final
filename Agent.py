@@ -277,8 +277,13 @@ class Agent(GameObject):
 
         # If the goal was reached by the agent in exploration mode, it needs to be removed from the destination list
         if self.location == self.goal and self.movement_mode == MoveModes.EXPLORE and self.run_away is False:
+
+            try:
             # Pop the location from the destinations list
-            self.destinations.remove(self.goal)
+                self.destinations.remove(self.goal)
+            except ValueError:
+                print("uh oh")
+                pass
 
         # If the goal was reached by the agent and was in run_away mode, make run_away False
         if self.location == self.goal and self.run_away:

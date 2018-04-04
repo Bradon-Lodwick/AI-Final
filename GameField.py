@@ -123,8 +123,8 @@ class GameField:
             The random location in (x, y) format.
         """
         # Generates the random x and y variables
-        x = random.randint(1, size_x)
-        y = random.randint(1, size_y)
+        x = random.randint(1, size_x-1)
+        y = random.randint(1, size_y-1)
         location = [x, y]
         return location
 
