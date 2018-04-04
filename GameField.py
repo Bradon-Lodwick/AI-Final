@@ -235,16 +235,18 @@ class GameField:
         # If the loop reaches here, then all agents must know where their targets are so return True
         return True
 
-    def post_trade(self, Agent_Posting, targets_to_trade):
-        targets_not_wanted = Agent_Posting.self_targets_found + Agent_Posting.targets_collected
-        recieved_target = None
+    @staticmethod
+    def post_trade(agent_posting, targets_to_trade):
+        targets_not_wanted = agent_posting.self_targets_found + agent_posting.targets_collected
 
-        for TradeT in targets_to_trade:
-            recieved_target = TradeT.owner.get_trade(TradeT, targets_not_wanted, Agent_Posting)
-            if recieved_target is not None:
-                Agent_Posting.self_targets_found.append(recieved_target)
-                break
+        for trade_t in targets_to_trade:
+            received_target = trade_t.owner.get_trade(trade_t, targets_not_wanted, agent_posting)
+            if received_target is not None:
+                agent_posting.self_targets_found.append(received_target)
+                return True
 
+        # If a trade did not occur
+        return False
 
     def get_agent_happinesses(self, run_no):
         """ Gets all of the agent's happiness information.

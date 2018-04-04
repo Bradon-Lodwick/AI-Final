@@ -324,7 +324,10 @@ class Agent(GameObject):
                     lie_list = [lie_target]
                     print("Agent {} lying to {}".format(self.g_id, agent_list[rand_agent].g_id))
                     print("{}".format(lie_location))
-                    self.game_field.post_trade(self, lie_list)
+                    trade_successful = self.game_field.post_trade(self, lie_list)
+                    # If the trade didn't go through, remove the target from the trade list
+                    if not trade_successful:
+                        self.game_field.object_list.remove(lie_target)
                     self.cooldown = 50
                 else:
                     self.game_field.post_trade(self, self.other_targets_found)
@@ -473,7 +476,8 @@ class Agent(GameObject):
 
             elif isinstance(obj, Target) and obj.owner != self and (obj not in self.other_targets_found):
                 # is a target that belongs to another agent
-                self.other_targets_found.append(obj)
+                if obj.lie is False:
+                    self.other_targets_found.append(obj)
 
         return found_agent
 
@@ -546,21 +550,22 @@ class Agent(GameObject):
                 # here in case it is needed in the future
                 pass
 
-    #the other agent sends the SELF targets they already have (don't want) and this is checked with what we have
-    def get_trade(self, Offer, targets_not_wanted, Agent_Offering):
-        #if happiness is low enough (below the threshold) and the trade is good for both agents
-        if (len(self.targets_collected) / (self.no_steps_taken + 1)) < (happiness_threshold) and \
-                (Offer not in self.targets_collected) and (Offer not in self.self_targets_found):
+    # The other agent sends the SELF targets they already have (don't want) and this is checked with what we have
+    def get_trade(self, offer, targets_not_wanted, agent_offering):
+        # If happiness is low enough (below the threshold) and the trade is good for both agents
+        if (len(self.targets_collected) / (self.no_steps_taken + 1)) < happiness_threshold and \
+                (offer not in self.targets_collected) and (offer not in self.self_targets_found):
 
             for i in range(len(self.other_targets_found)):
-                #for TradeT in targets_not_wanted:
-                TradeBack = self.other_targets_found[i]
-                if TradeBack not in targets_not_wanted:
-                    if (TradeBack.owner == Agent_Offering):
-                        self.self_targets_found.append(Offer)
-                        print("Trade between Agents {} and {} Done".format(Agent_Offering.g_id, self.g_id))
+                # For TradeT in targets_not_wanted:
+                trade_back = self.other_targets_found[i]
+                if trade_back not in targets_not_wanted:
+                    if trade_back.owner == agent_offering:
+                        self.self_targets_found.append(offer)
+                        print("Trade between Agents {} and {} Done".format(agent_offering.g_id, self.g_id))
                         pass
-                        return TradeBack
+                        return trade_back
+
         return None
 
     def find_closest_target(self, targets, start):
@@ -581,16 +586,6 @@ class Agent(GameObject):
 
         # The best target so far
         best_target = None
-        best_distance = inf
-        # Iterate through all targets to determine closest one
-        '''
-        for target in targets:
-            current_distance = self.calculate_manhattan_distance(start, target.location)
-            # If current_distance is smaller than the best_distance, set the current target to be best
-            if current_distance < best_distance:
-                best_distance = current_distance
-                best_target = target
-        '''
         try:
             best_target = min(targets, key=lambda tar: self.calculate_manhattan_distance(start, tar.location))
         except ValueError:
