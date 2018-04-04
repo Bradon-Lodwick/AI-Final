@@ -18,6 +18,7 @@ from Settings import *
 from math import inf
 import numpy as np
 import random
+from PIL import Image
 
 
 class Agent(GameObject):
@@ -77,6 +78,11 @@ class Agent(GameObject):
         location : list
             The location the agent will start on, passed in (x, y) format.
         """
+
+        mem_image = Image.open("danny_d.png")
+        mem_image = mem_image.convert(mode="1")
+        mem_image_arr = np.array(mem_image)
+
         GameObject.__init__(self, game_field, g_id, location)
         # Creates the empty lists for the targets the agent has found
         self.targets_collected = list()
@@ -107,7 +113,8 @@ class Agent(GameObject):
         self.direct = None
 
         # Initializes the memory of the map that the agent has seen
-        self.memory = np.ones(shape=(size_x, size_y))
+        #self.memory = np.ones(shape=(size_x, size_y))
+        self.memory = mem_image_arr
 
         # Sets to False as not all targets should be collected on initialization
         self.all_targets_collected = False
