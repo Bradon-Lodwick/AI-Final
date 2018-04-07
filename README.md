@@ -1,6 +1,12 @@
 # Introduction to Artificial Intelligence: SOFE 3720
 ## Term project: Design and implementation of a multi-agent system
 
+## Setup
+1. Clone the repository or download all of the files
+2. To ensure that all dependencies are installed, run a pip  install with the requirements file in the venv_setup by running `pip install -r venv_setup/requirements.txt` from the root directory of the project
+3. Run the Main.py file to begin the simulations
+
+## Description
 1. Environment: a 1 m x 1 m field.
 2. Five agents (A,B,C,D,E) can move up and down and left and right, one centimeter in every step.
 3. Assume the agents have unlimited power supply.
