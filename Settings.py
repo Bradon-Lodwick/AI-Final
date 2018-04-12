@@ -12,7 +12,7 @@ no_targets_per_agent = 5
 
 happiness_threshold = 1 / 75
 
-no_iterations = 50
+no_iterations = 1
 
 # TERMINAL SETTINGS
 # The refresh rate of the terminal
